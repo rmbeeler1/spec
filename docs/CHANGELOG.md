@@ -2,6 +2,14 @@
 
 All notable changes to Spec are recorded here.
 
+## Unreleased: v0.2 "Import" in progress (October 12, 2026)
+
+- Element classifier in core: per-line element types with confidence values, using INT./EXT. patterns, caps cues, TO: transitions, parentheticals, blank-line context, and layout hints (centered, indent, bold) when the source has them.
+- Accuracy gates as tests: at least 95% on clean plain text, at least 85% on messy plain text, measured against the Fountain ground truth of the same scripts. Downgrades that plain text makes unavoidable (forced headings, forced transitions, centered text) count as correct reads of the input.
+- Importers in core: .txt and .md (headings become sections) through the classifier; .docx by reading the document XML directly (fflate + fast-xml-parser), with alignment/indent/bold feeding the classifier.
+- CLI reads .docx, .txt and .md now: `spec convert script.docx script.fountain`.
+- Still to come for v0.2: PDF text-layer import, File > Import in the app, and the review pane (see docs/acceptance/v0.2.md).
+
 ## v0.1.1 discoverability pass (October 12, 2026, after hands-on feedback)
 
 - Element toolbar above the page: the six element types with their shortcuts, click to set, current type highlighted.

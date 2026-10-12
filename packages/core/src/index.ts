@@ -17,6 +17,15 @@ export {
   type RenderLineType,
   type RenderPage
 } from './pagination/paginate'
+export {
+  classifyLines,
+  type ClassifiedLine,
+  type ClassifiedType,
+  type ImportLine
+} from './import/classifier'
+export { buildScript, extractTitlePage } from './import/build'
+export { importPlainText, importMarkdown, type ImportResult } from './import/text'
+export { importDocx } from './import/docx'
 export { readFdx, type ReadFdxOptions } from './fdx/read'
 export { writeFdx } from './fdx/write'
 export { exportPdf, type PdfExportOptions, type PdfFonts } from './pdf/exportPdf'

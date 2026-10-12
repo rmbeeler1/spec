@@ -2,6 +2,9 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { extname } from 'node:path'
 import {
   exportPdf,
+  importDocx,
+  importMarkdown,
+  importPlainText,
   parseFountain,
   readFdx,
   serializeFountain,
@@ -14,7 +17,7 @@ export interface ConvertDeps {
   fonts: PdfFonts
 }
 
-const READABLE = ['.fountain', '.txt', '.fdx']
+const READABLE = ['.fountain', '.txt', '.md', '.docx', '.fdx']
 const WRITABLE = ['.fountain', '.fdx', '.pdf']
 
 /** Convert between formats, routed by file extension. */
@@ -28,8 +31,16 @@ export async function convertFile(input: string, output: string, deps: ConvertDe
     throw new Error(`Cannot write ${to || 'files without an extension'}. Writable: ${WRITABLE.join(', ')}`)
   }
 
-  const source = await readFile(input, 'utf8')
-  const script: Script = from === '.fdx' ? readFdx(source) : parseFountain(source)
+  let script: Script
+  if (from === '.docx') {
+    script = importDocx(await readFile(input)).script
+  } else {
+    const source = await readFile(input, 'utf8')
+    if (from === '.fdx') script = readFdx(source)
+    else if (from === '.txt') script = importPlainText(source).script
+    else if (from === '.md') script = importMarkdown(source).script
+    else script = parseFountain(source)
+  }
 
   if (to === '.pdf') {
     await writeFile(output, await exportPdf(script, { fonts: deps.fonts }))

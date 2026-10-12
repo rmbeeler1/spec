@@ -53,8 +53,16 @@ describe('convertFile', () => {
     expect(text).toContain('EXT.')
   })
 
+  it('imports a Word document to fountain', async () => {
+    const out = join(dir, 'from-docx.fountain')
+    await convertFile(join(CORPUS, 'docx/Big Fish.docx'), out, { fonts })
+    const text = await readFile(out, 'utf8')
+    expect(text).toContain('Title: Big Fish')
+    expect(text).toContain('EXT.')
+  })
+
   it('rejects unsupported extensions', async () => {
-    await expect(convertFile('in.docx', 'out.pdf', { fonts })).rejects.toThrow(/Cannot read/)
+    await expect(convertFile('in.rtf', 'out.pdf', { fonts })).rejects.toThrow(/Cannot read/)
     await expect(convertFile(kitchenSink, 'out.docx', { fonts })).rejects.toThrow(/Cannot write/)
   })
 })
