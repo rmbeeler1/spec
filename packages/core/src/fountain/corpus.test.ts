@@ -7,10 +7,15 @@ import { sequentialIdGenerator } from '../model/ids'
 
 const CORPUS = join(__dirname, '../../../../test-corpus/fountain')
 
-function corpusFiles(dir: string): string[] {
+interface CorpusFile {
+  name: string // platform-independent, used in test and snapshot names
+  path: string
+}
+
+function corpusFiles(dir: string): CorpusFile[] {
   return readdirSync(join(CORPUS, dir))
     .filter((f) => f.endsWith('.fountain'))
-    .map((f) => join(CORPUS, dir, f))
+    .map((f) => ({ name: `${dir}/${f}`, path: join(CORPUS, dir, f) }))
 }
 
 const allFiles = [
@@ -20,8 +25,7 @@ const allFiles = [
 ]
 
 describe('parseFountain on the corpus', () => {
-  for (const file of allFiles) {
-    const name = file.split('/').slice(-2).join('/')
+  for (const { name, path: file } of allFiles) {
     it(`parses ${name}`, () => {
       const source = readFileSync(file, 'utf8')
       const script = parseFountain(source, { idGenerator: sequentialIdGenerator() })
@@ -44,8 +48,7 @@ describe('parseFountain on the corpus', () => {
 })
 
 describe('round-trip: parse -> serialize -> parse', () => {
-  for (const file of allFiles) {
-    const name = file.split('/').slice(-2).join('/')
+  for (const { name, path: file } of allFiles) {
     it(`round-trips ${name}`, () => {
       const source = readFileSync(file, 'utf8')
       const first = parseFountain(source, { idGenerator: sequentialIdGenerator() })

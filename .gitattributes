@@ -1,0 +1,7 @@
+# Keep all text files LF on every platform so corpus fixtures and snapshots
+# are byte-identical in CI on Windows, macOS and Linux.
+* text=auto eol=lf
+*.ttf binary
+*.pdf binary
+*.docx binary
+*.png binary
