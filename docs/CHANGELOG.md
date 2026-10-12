@@ -2,6 +2,24 @@
 
 All notable changes to Spec are recorded here.
 
+## v0.1.0 "Write" (October 12, 2026)
+
+First usable release: draft a script, get a correct PDF or FDX out.
+
+### Phase 2: editor shell
+
+- Screenplay editor built on Tiptap: every line is a typed element rendered with industry-standard indents in Courier Prime.
+- Auto element detection while typing: INT./EXT. lines become scene headings, caps lines become character cues or transitions, parentheses inside dialogue become parentheticals. Detection only upgrades plain action lines, never overrides manual choices.
+- Keyboard model: Enter follows the standard flow (character to dialogue, dialogue to character, and so on), Tab/Shift-Tab cycle the element type, Cmd/Ctrl+1 to 6 set it directly, Shift+Enter inserts a line break inside an element.
+- Data safety: autosave 1.5 seconds after every change, atomic writes (temp file then rename), and a snapshot of the previous version on every save with a Restore from Snapshot dialog (last 25 kept per file).
+- Live page count and page-break markers in the editor, computed by the same pagination engine that drives PDF export.
+- Scene navigator: jump to any scene, move scenes up and down (reorders the script).
+- Title page editor, find and replace, dark mode, focus mode (dims everything except the element being written).
+- Export to PDF, FDX, and Fountain from the File menu. New-from-template: feature film, TV hour, TV half-hour.
+- Native menus with recent files; window title tracks the file and unsaved state.
+- Packaging with electron-builder (macOS dmg/zip, Windows nsis/zip, Linux AppImage/deb) and a tag-triggered GitHub release workflow.
+- Known limitations: the editor shows the script as a continuous column with page markers rather than discrete page cards; spellcheck relies on the OS; scene reorder is button-based, not drag and drop.
+
 ## Unreleased
 
 ### Phase 1: core library (October 12, 2026)

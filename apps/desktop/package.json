@@ -1,28 +1,38 @@
 {
   "name": "spec-desktop",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
-  "description": "Spec desktop app (Electron shell)",
+  "description": "Spec: a free, open-source, offline-first screenwriting app",
   "license": "MIT",
+  "author": "rmbeeler1",
+  "homepage": "https://github.com/rmbeeler1/spec",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
+    "dist": "electron-vite build && electron-builder --publish never",
+    "release": "electron-vite build && electron-builder --publish always",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "@spec/core": "workspace:*",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0"
-  },
   "devDependencies": {
+    "@spec/core": "workspace:*",
+    "@tiptap/core": "^3.31.4",
+    "@tiptap/extensions": "^3.31.4",
+    "@tiptap/pm": "^3.31.4",
+    "@tiptap/react": "^3.31.4",
     "@types/node": "^24.0.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^5.2.0",
     "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
     "electron-vite": "^5.0.0",
+    "playwright-core": "^1.64.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "typescript": "^5.9.3",
-    "vite": "^7.3.7"
+    "vite": "^7.3.7",
+    "vitest": "^5.0.4"
   }
 }

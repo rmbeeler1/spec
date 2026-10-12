@@ -1,8 +1,14 @@
 /// <reference types="vite/client" />
 
-// Shape of the API the preload script exposes on window.
-interface Window {
-  spec: {
-    platform: string
+import type { SpecApi } from '../../shared/ipc'
+
+declare global {
+  interface Window {
+    spec: SpecApi
   }
+}
+
+declare module '*.ttf?inline' {
+  const dataUri: string
+  export default dataUri
 }

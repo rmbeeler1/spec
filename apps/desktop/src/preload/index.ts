@@ -1,7 +1,24 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
+import type { MenuCommand, OpenedFile, SpecApi } from '../shared/ipc'
 
-// The only bridge between the UI and the system. Everything the renderer
-// needs from Electron gets exposed here, explicitly, one key at a time.
-contextBridge.exposeInMainWorld('spec', {
-  platform: process.platform
-})
+const api: SpecApi = {
+  platform: process.platform,
+  openFile: () => ipcRenderer.invoke('dialog:open-file'),
+  openPath: (path) => ipcRenderer.invoke('file:open-path', path),
+  saveFileAs: (defaultName, filterName, extensions) =>
+    ipcRenderer.invoke('dialog:save-file-as', defaultName, filterName, extensions),
+  writeFile: (path, content) => ipcRenderer.invoke('file:write', path, content),
+  writeBinaryFile: (path, data) => ipcRenderer.invoke('file:write-binary', path, data),
+  listSnapshots: (path) => ipcRenderer.invoke('snapshots:list', path),
+  readSnapshot: (path, id) => ipcRenderer.invoke('snapshots:read', path, id),
+  setDocumentState: (filePath, dirty) => ipcRenderer.send('doc:state', filePath, dirty),
+  getRecentFiles: () => ipcRenderer.invoke('recents:get'),
+  onMenuCommand: (handler) => {
+    ipcRenderer.on('menu:command', (_event, command: MenuCommand) => handler(command))
+  },
+  onFileOpened: (handler) => {
+    ipcRenderer.on('file:opened', (_event, file: OpenedFile) => handler(file))
+  }
+}
+
+contextBridge.exposeInMainWorld('spec', api)

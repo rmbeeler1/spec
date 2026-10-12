@@ -2,7 +2,7 @@
 
 A free, open-source, offline-first desktop screenwriting app for Windows, macOS and Linux.
 
-**Status: pre-alpha.** Phase 0 (project scaffold and test corpus). Nothing usable yet.
+**Status: v0.1 "Write".** You can draft a screenplay, autosaved and snapshotted, and export a correctly paginated PDF, FDX, or Fountain file. Installers for Windows, macOS and Linux are on the [releases page](https://github.com/rmbeeler1/spec/releases). Importing from Word and planning tools (corkboard, beat board) come next.
 
 ## Why
 
