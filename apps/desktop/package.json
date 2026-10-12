@@ -8,9 +8,9 @@
   "homepage": "https://github.com/rmbeeler1/spec",
   "main": "./out/main/index.js",
   "scripts": {
-    "dev": "electron-vite dev",
+    "dev": "node scripts/ensure-electron.mjs && electron-vite dev",
     "build": "electron-vite build",
-    "dist": "electron-vite build && electron-builder --publish never",
+    "dist": "node scripts/ensure-electron.mjs && electron-vite build && electron-builder --publish never",
     "release": "electron-vite build && electron-builder --publish always",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
