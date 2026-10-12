@@ -1,0 +1,5 @@
+pnpm-lock.yaml
+test-corpus/
+assets/
+out/
+dist/

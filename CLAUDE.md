@@ -33,4 +33,4 @@ Open-source, offline-first desktop screenwriting app. Personal project, MIT lice
 - Commands: `pnpm install`, `pnpm dev`, `pnpm test`, `pnpm build`. Update this list if they change.
 
 ## Current phase
-Phase 0: scaffold repo, choose name, collect test corpus (public-domain scripts in Fountain, FDX, DOCX, PDF plus the Fountain spec samples).
+Phase 0 complete (Oct 12, 2026): name is Spec, monorepo scaffolded and verified (install, lint, test, build, app launches), CI matrix added, Courier Prime bundled, test corpus collected (see `test-corpus/SOURCES.md`, including its follow-ups list). Next: Phase 1, core library (Fountain parser/serializer, document model, pagination, FDX, CLI).

@@ -194,10 +194,11 @@ Goal: a writer can draft a full feature script and send a correct PDF or FDX to 
 ## 8. Decisions log (Oct 12, 2026)
 
 1. Stack: Electron + React + TypeScript + Tiptap. Chosen for easiest lift and newcomer friendliness.
-2. Repo: personal GitHub account. Name: TBD (pick before Phase 0; see candidate list in chat).
+2. Repo: personal GitHub account. Name: **Spec** (decided Oct 12, 2026).
 3. Storyboards: text-based scene-by-scene pacing cards, not images. Folded into v0.3.
 4. License: MIT. Personal use first; release optional.
-5. Still open (low stakes, decide in Phase 0): bundle Courier Prime only, or also detect user-installed Courier variants.
+5. Fonts (decided Oct 12, 2026): bundle Courier Prime only for v0.1. One font keeps pagination identical on every machine, which the Final Draft parity gate depends on. Detecting user-installed Courier variants is deferred.
+6. Toolchain pins (Oct 12, 2026): TypeScript 5.9 (typescript-eslint does not support TS 6/7 yet) and Vite 7 (electron-vite 5 does not support Vite 8 yet). Revisit when those catch up.
 
 ---
 

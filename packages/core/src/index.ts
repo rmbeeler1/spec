@@ -1,0 +1,3 @@
+export { normalizeLineEndings, splitLines } from './text'
+
+export const CORE_VERSION = '0.0.1'

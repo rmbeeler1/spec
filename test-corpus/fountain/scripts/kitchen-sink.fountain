@@ -1,0 +1,77 @@
+Title: Kitchen Sink
+Credit: Written by
+Author: Spec Project
+Draft date: October 2026
+Contact:
+	Spec test corpus
+	Self-written, public domain
+Copyright: Released to the public domain
+
+# Act One
+
+= A test script that uses every Fountain element type at least once.
+
+[[This note should not appear in any rendered output.]]
+
+INT. TEST KITCHEN - DAY
+
+A plain kitchen. Every cabinet is labeled. On the counter sits a SINK with a tag that reads "everything, including me."
+
+MARGO, 40s, methodical, inspects the sink.
+
+MARGO
+Scene heading, action, character cue, dialogue. Four elements down.
+
+VICTOR (O.S.)
+(from the pantry)
+Do not forget the parenthetical. Or the offscreen extension.
+
+Margo writes on a clipboard.
+
+MARGO ^
+We can even talk at the same time.
+
+VICTOR ^
+We can even talk at the same time.
+
+> CENTERED TEXT LOOKS LIKE THIS <
+
+~This is a lyric line, sung badly.
+
+.FORCED SCENE HEADING
+
+!FORCED ACTION LINE THAT WOULD OTHERWISE READ AS A SCENE OR CUE
+
+@McCONAUGHEY-BOT 3000
+A forced character cue, for names a parser would miss.
+
+MARGO (CONT'D)
+And when we are done here, we cut away.
+
+SMASH CUT TO:
+
+EXT. TEST GARDEN - NIGHT
+
+/*
+This whole paragraph lives in the boneyard. If it shows up in a render,
+the parser has failed this file.
+*/
+
+The garden is dark. A single sprinkler hisses.
+
+VICTOR
+Transitions, dual dialogue, lyrics, centered text, notes, boneyard, sections, synopses, forced elements, a page break next.
+
+===
+
+## A New Page
+
+INT. TEST KITCHEN - LATER
+
+The sink is gone. Margo stares at the empty counter.
+
+MARGO
+(quietly)
+It had one job.
+
+FADE OUT.
