@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`readFdx on Big Fish > element type counts match a snapshot 1`] = `
+{
+  "action": 867,
+  "character": 768,
+  "dialogue": 811,
+  "parenthetical": 97,
+  "scene_heading": 190,
+  "transition": 34,
+}
+`;

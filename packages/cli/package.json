@@ -1,0 +1,25 @@
+{
+  "name": "@spec/cli",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Spec command line converter: Fountain to PDF/FDX and FDX to Fountain",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "spec": "./dist/spec.mjs"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@spec/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.4"
+  }
+}

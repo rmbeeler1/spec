@@ -4,6 +4,17 @@ All notable changes to Spec are recorded here.
 
 ## Unreleased
 
+### Phase 1: core library (October 12, 2026)
+
+- Document model: flat element list with stable IDs, all Fountain element types plus FDX Shot.
+- Fountain parser and serializer with full element coverage (title page, scene numbers, dual dialogue, forced elements, sections, synopses, notes, boneyard, page breaks, lyrics, centered text). Semantic round-trip verified against the whole corpus with snapshot tests.
+- Pagination engine: industry-standard metrics (Courier 12pt, 55 lines/page, standard indents and widths), dialogue breaks with (MORE)/(CONT'D), no orphaned character cues, no scene headings at page bottom, forced page breaks. Invariants tested on every corpus script. Big Fish paginates to 125 pages against roughly 124 in Final Draft.
+- Inline emphasis parser (bold, italic, underline, notes stripped at render time).
+- FDX reader and writer: element types, scene numbers, dual dialogue blocks, text styles mapped to Fountain emphasis in both directions. Verified round-trip plus a real-world read of the Big Fish FDX.
+- PDF export with pdf-lib and embedded Courier Prime: styled text runs, underlines, title page, page numbers.
+- CLI (`packages/cli`): `spec convert <in> <out>` routes by extension between .fountain/.txt/.fdx input and .fountain/.fdx/.pdf output. Bundled into a single self-contained file with the fonts baked in (`packages/cli/dist/spec.mjs`).
+- Known limitations, deliberate for now: dual dialogue paginates sequentially rather than side by side; FDX title pages are not mapped back to Fountain keys; dialogue with no character cue (legal in FDX) downgrades to action when converted to Fountain.
+
 ### Phase 0 (October 12, 2026)
 
 - Named the app Spec.

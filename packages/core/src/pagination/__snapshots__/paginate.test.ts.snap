@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`page count snapshots (regression anchors) > page count for scripts/dialogue-break-stress.fountain 1`] = `19`;
+
+exports[`page count snapshots (regression anchors) > page count for scripts/kitchen-sink.fountain 1`] = `2`;
+
+exports[`page count snapshots (regression anchors) > page count for scripts/orphan-stress.fountain 1`] = `39`;
+
+exports[`page count snapshots (regression anchors) > page count for scripts/two-page-minimal.fountain 1`] = `1`;
+
+exports[`page count snapshots (regression anchors) > page count for spec-samples/Big Fish.fountain 1`] = `125`;
+
+exports[`page count snapshots (regression anchors) > page count for spec-samples/Brick And Steel.fountain 1`] = `4`;

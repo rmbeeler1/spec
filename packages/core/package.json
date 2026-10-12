@@ -5,6 +5,7 @@
   "description": "Spec core library: Fountain parser, document model, pagination, import/export. Pure TypeScript, no Electron or React.",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
@@ -12,7 +13,13 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/node": "^24.19.2",
     "typescript": "^5.9.3",
     "vitest": "^5.0.4"
+  },
+  "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
+    "fast-xml-parser": "^5.11.2",
+    "pdf-lib": "^1.17.1"
   }
 }
