@@ -58,3 +58,61 @@ export function detectTypeOnEnter(text: string, current: ElementType): ElementTy
 export function typeForShortcut(digit: number): ElementType | null {
   return CYCLE_TYPES[digit - 1] ?? null
 }
+
+/**
+ * Tidy a scene heading when the writer finishes it: make sure the INT/EXT
+ * prefix is uppercase and carries its period ("int house - day" becomes
+ * "INT. house - day"; display and print uppercase the rest).
+ */
+export function normalizeSceneHeading(text: string): string {
+  const m = text.match(/^(\s*)(INT\.?\/EXT|INT|EXT|EST|I\/E)([.\s])\s*(.*)$/i)
+  if (!m) return text
+  const prefix = m[2]!.toUpperCase().replace(/\.$/, '').replace('INT/EXT', 'INT./EXT')
+  return `${prefix}. ${m[4] ?? ''}`.trimEnd()
+}
+
+/** "EDWARD (V.O.) ^" and "edward (CONT'D)" both compare as EDWARD. */
+export function baseCharacterName(cue: string): string {
+  return cue
+    .replace(/\^\s*$/, '')
+    .replace(/\([^)]*\)/g, '')
+    .trim()
+    .toUpperCase()
+}
+
+/**
+ * Should this character cue get a (CONT'D)? Yes when the most recent speaker
+ * before it is the same character and only action (or similar) stands in
+ * between. A scene heading or transition resets the conversation.
+ */
+export function needsContd(
+  previousElements: Array<{ type: ElementType; text: string }>,
+  cueText: string
+): boolean {
+  if (/\(CONT'D\)\s*\^?\s*$/i.test(cueText)) return false
+  const name = baseCharacterName(cueText)
+  if (name.length === 0) return false
+
+  let sawInterruption = false
+  for (let i = previousElements.length - 1; i >= 0; i--) {
+    const el = previousElements[i]!
+    if (el.type === 'character') {
+      return sawInterruption && baseCharacterName(el.text) === name
+    }
+    if (el.type === 'scene_heading' || el.type === 'transition' || el.type === 'page_break') {
+      return false
+    }
+    if (el.type === 'action' || el.type === 'centered' || el.type === 'shot') {
+      sawInterruption = true
+    }
+    // dialogue/parenthetical/lyric: part of the previous speech, keep walking
+  }
+  return false
+}
+
+/** Append (CONT'D), keeping a dual-dialogue caret at the very end. */
+export function withContd(cueText: string): string {
+  const dual = /\^\s*$/.test(cueText.trim())
+  const base = cueText.trim().replace(/\^\s*$/, '').trimEnd()
+  return `${base} (CONT'D)${dual ? ' ^' : ''}`
+}

@@ -129,6 +129,18 @@ describe('page count snapshots (regression anchors)', () => {
   }
 })
 
+describe('Final Draft parity gate', () => {
+  // The reference count comes from John August's published PDF of this same
+  // production draft, which runs about 124 pages. Until we have an exact
+  // Final Draft export in the corpus (listed as a follow-up in
+  // test-corpus/SOURCES.md), the release gate is 124 plus or minus 4 pages.
+  it('Big Fish page count stays within the parity window', () => {
+    const pages = paginate(load('spec-samples/Big Fish.fountain')).length
+    expect(pages).toBeGreaterThanOrEqual(120)
+    expect(pages).toBeLessThanOrEqual(128)
+  })
+})
+
 describe('forced page breaks', () => {
   it('kitchen-sink === forces a new page', () => {
     const pages = paginate(load('scripts/kitchen-sink.fountain'))

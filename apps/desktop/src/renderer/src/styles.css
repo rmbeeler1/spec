@@ -122,6 +122,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-transform: uppercase;
 }
 
 .scene-move {
@@ -288,6 +289,145 @@ body {
 
 .focus-mode .tiptap .el-current {
   opacity: 1;
+}
+
+/* ---------- Element toolbar ---------- */
+
+.element-toolbar {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--chrome-bg);
+  border-bottom: 1px solid var(--chrome-border);
+  flex-wrap: wrap;
+}
+
+.element-toolbar button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 10px;
+  border: 1px solid var(--chrome-border);
+  border-radius: 5px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.element-toolbar button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.element-toolbar .tb-key {
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+
+.element-toolbar button.active .tb-key {
+  color: var(--accent);
+}
+
+.element-toolbar .tb-tip {
+  margin-left: 10px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.element-toolbar .tb-help {
+  margin-left: auto;
+  flex-direction: row;
+  gap: 4px;
+}
+
+/* ---------- First launch hint ---------- */
+
+.first-hint {
+  position: fixed;
+  right: 20px;
+  bottom: 44px;
+  width: 340px;
+  background: var(--chrome-bg);
+  border: 1px solid var(--chrome-border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 14px 16px;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.25);
+  font-size: 0.82rem;
+  z-index: 9;
+}
+
+.first-hint p {
+  margin: 8px 0;
+  color: var(--ink);
+}
+
+.first-hint code {
+  background: var(--chrome-border);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
+.hint-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.hint-buttons button {
+  padding: 4px 10px;
+  border: 1px solid var(--chrome-border);
+  border-radius: 5px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.hint-buttons .primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ---------- Shortcuts dialog ---------- */
+
+.dialog-wide {
+  width: 560px;
+}
+
+.shortcut-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-bottom: 16px;
+}
+
+.shortcut-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--chrome-border);
+  vertical-align: top;
+}
+
+.shortcut-table .key {
+  white-space: nowrap;
+  font-family: 'Courier Prime', monospace;
+  color: var(--accent);
+}
+
+.tips {
+  font-size: 0.82rem;
+  padding-left: 18px;
+  color: var(--ink);
+}
+
+.tips li {
+  margin-bottom: 6px;
 }
 
 /* ---------- Find bar ---------- */

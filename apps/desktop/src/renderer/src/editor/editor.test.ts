@@ -5,7 +5,15 @@ import { getSchema } from '@tiptap/core'
 import { parseFountain, sequentialIdGenerator, serializeFountain } from '@spec/core'
 import { LineBreak, ScreenplayDocument, ScreenplayElement, ScreenplayText } from './schema'
 import { docToScript, scriptToDoc, type PmDoc } from './convert'
-import { cycleType, detectTypeOnEnter, nextTypeOnEnter } from './keymapLogic'
+import {
+  baseCharacterName,
+  cycleType,
+  detectTypeOnEnter,
+  needsContd,
+  nextTypeOnEnter,
+  normalizeSceneHeading,
+  withContd
+} from './keymapLogic'
 
 const CORPUS = join(__dirname, '../../../../../../test-corpus/fountain')
 
@@ -104,6 +112,56 @@ describe('keyboard model', () => {
     expect(detectTypeOnEnter('SMASH CUT TO:', 'action')).toBe('transition')
     expect(detectTypeOnEnter('MARGO', 'action')).toBe('character')
     expect(detectTypeOnEnter('(beat)', 'dialogue')).toBe('parenthetical')
+  })
+
+  it('normalizes scene heading prefixes', () => {
+    expect(normalizeSceneHeading('int house - day')).toBe('INT. house - day')
+    expect(normalizeSceneHeading('INT HOUSE - DAY')).toBe('INT. HOUSE - DAY')
+    expect(normalizeSceneHeading('ext. CLIFF - DAWN')).toBe('EXT. CLIFF - DAWN')
+    expect(normalizeSceneHeading('int/ext car - night')).toBe('INT./EXT. car - night')
+    expect(normalizeSceneHeading('INT./EXT. CAR - NIGHT')).toBe('INT./EXT. CAR - NIGHT')
+    expect(normalizeSceneHeading('i/e car - night')).toBe('I/E. car - night')
+    expect(normalizeSceneHeading('est city - day')).toBe('EST. city - day')
+    expect(normalizeSceneHeading('Not a heading at all')).toBe('Not a heading at all')
+  })
+
+  it('compares character names ignoring extensions and dual carets', () => {
+    expect(baseCharacterName("EDWARD (V.O.) ^")).toBe('EDWARD')
+    expect(baseCharacterName("edward (CONT'D)")).toBe('EDWARD')
+    expect(baseCharacterName('MARGO')).toBe('MARGO')
+  })
+
+  it("adds (CONT'D) when the same character speaks after action", () => {
+    const prev = [
+      { type: 'character' as const, text: 'EDWARD' },
+      { type: 'dialogue' as const, text: 'First speech.' },
+      { type: 'action' as const, text: 'He points at the river.' }
+    ]
+    expect(needsContd(prev, 'EDWARD')).toBe(true)
+    expect(needsContd(prev, 'EDWARD (V.O.)')).toBe(true)
+    expect(needsContd(prev, 'WILL')).toBe(false)
+    expect(needsContd(prev, "EDWARD (CONT'D)")).toBe(false) // already marked
+  })
+
+  it("does not add (CONT'D) across scene boundaries or without interruption", () => {
+    const acrossScene = [
+      { type: 'character' as const, text: 'EDWARD' },
+      { type: 'dialogue' as const, text: 'Speech.' },
+      { type: 'scene_heading' as const, text: 'INT. HALL - DAY' },
+      { type: 'action' as const, text: 'Later.' }
+    ]
+    expect(needsContd(acrossScene, 'EDWARD')).toBe(false)
+
+    const noInterruption = [
+      { type: 'character' as const, text: 'EDWARD' },
+      { type: 'dialogue' as const, text: 'Speech.' }
+    ]
+    expect(needsContd(noInterruption, 'EDWARD')).toBe(false)
+  })
+
+  it("appends (CONT'D) keeping dual carets", () => {
+    expect(withContd('EDWARD')).toBe("EDWARD (CONT'D)")
+    expect(withContd('EDWARD ^')).toBe("EDWARD (CONT'D) ^")
   })
 
   it('leaves ordinary action and manual choices alone', () => {

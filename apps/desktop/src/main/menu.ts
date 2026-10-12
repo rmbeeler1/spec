@@ -103,6 +103,13 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
       role: 'help',
       submenu: [
         {
+          label: 'Keyboard Shortcuts',
+          accelerator: 'CmdOrCtrl+/',
+          click: () => send('help:shortcuts')
+        },
+        { label: 'Welcome Hint', click: () => send('help:welcome') },
+        { type: 'separator' },
+        {
           label: 'Spec on GitHub',
           click: () => void shell.openExternal('https://github.com/rmbeeler1/spec')
         }

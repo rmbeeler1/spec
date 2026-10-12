@@ -2,6 +2,16 @@
 
 All notable changes to Spec are recorded here.
 
+## v0.1.1 discoverability pass (October 12, 2026, after hands-on feedback)
+
+- Element toolbar above the page: the six element types with their shortcuts, click to set, current type highlighted.
+- Help menu: Keyboard Shortcuts dialog (Cmd/Ctrl+/) and a reopenable Welcome Hint.
+- First-launch hint card explaining the basics; shows once, dismissible.
+- Scene heading normalization on Enter: "int house - day" becomes "INT. house - day" (prefix uppercased, period added); the scene sidebar displays headings in uppercase.
+- Automatic (CONT'D): when the same character speaks again after action, the new cue gets (CONT'D). Never across a scene heading or transition, never doubled, dual-dialogue carets preserved.
+- Final Draft parity gate is now an explicit test: Big Fish must paginate within 124 +/- 4 pages.
+- Retroactive acceptance file with evidence (docs/acceptance/v0.1.md, docs/evidence/) and release report (docs/releases/v0.1-report.md).
+
 ## v0.1.0 "Write" (October 12, 2026)
 
 First usable release: draft a script, get a correct PDF or FDX out.

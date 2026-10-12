@@ -16,21 +16,28 @@ Open-source, offline-first desktop screenwriting app. Personal project, MIT lice
 
 ## Non-negotiables
 - Fountain (`.fountain`) is the source of truth on disk. Planning data (cards, beats, stash, colors) lives in `project.json` keyed by stable element IDs. Never store script text anywhere except the Fountain file.
-- Pagination must match industry standard: Courier 12pt, 6 lines/inch, standard margins and indents, (MORE)/(CONT'D) on dialogue breaks, never orphan a character cue, never leave a scene heading at page bottom. Treat parity with Final Draft page counts on the test corpus as a release gate.
+- Pagination must match industry standard: Courier 12pt, 6 lines/inch, standard margins and indents, (MORE)/(CONT'D) on dialogue breaks, never orphan a character cue, never leave a scene heading at page bottom. Parity with Final Draft page counts on the test corpus is a release gate.
 - Data safety first: atomic writes (temp file then rename), autosave, snapshot history. Crashes and lost work are the number one complaint about commercial tools; we do not repeat that.
 - Clean room: do not read or copy code from GPL projects (Beat, KIT Scenarist, Trelby). Spec docs and MIT/BSD libraries only.
 
 ## Release ladder (one verb per release, ship before starting the next)
 - v0.1 Write: editor, auto element detection, pagination, PDF/FDX/Fountain export, title page, scene navigator, dark/focus mode, autosave.
 - v0.2 Import: FDX, DOCX, MD/TXT, PDF text layer, with an element classifier and a review pane to bulk-fix misclassified lines.
-- v0.3 Plan: corkboard scene cards, pacing storyboard (text cards on a timeline with page length, runtime, tension), Beat Board, outline lanes (acts/sequences/scenes/storylines), stash, character navigator.
+- v0.3 Plan: corkboard scene cards, pacing storyboard (text cards on a timeline with page length, runtime, tension), Beat Board, outline lanes, stash, character navigator.
 - v0.4 Produce: revision mode, scene numbering, reports, dual dialogue, writing stats, more templates.
 
+## Autonomous operation (the owner runs long unattended sessions)
+- Each release has an acceptance file at `docs/acceptance/v0.X.md`: a checklist of user-visible behaviors plus the commands that prove them. Write the acceptance file BEFORE writing the code for that release, and ask the owner to confirm it. After that, work without asking.
+- Definition of done for any task: `pnpm lint`, `pnpm test`, and `pnpm build` all pass, and every box in the acceptance file is checked with evidence (a test name, a screenshot in `docs/evidence/`, or a command output).
+- Tests are the feedback loop. Build the test harness and corpus before features. Every parser, importer, or pagination change ships with a test against `test-corpus/`. If a feature cannot be tested automatically, write a manual check into the acceptance file for the owner.
+- Commit after every green test run with a clear message. Never leave the working tree red for long.
+- When stuck on the same failing test for more than three attempts, stop, write what you tried and what you think is wrong in `docs/BLOCKERS.md`, commit, and move to the next independent task. Do not loop.
+- When a release's acceptance file is fully checked, write `docs/releases/v0.X-report.md`: what was built, what to click to try it, known gaps, and what you recommend next. That report is what the owner reads first.
+- Never run destructive git commands (force push, history rewrite, branch deletion). Never touch files outside this repository. Never install global packages.
+
 ## Working agreements
-- Before coding a feature, state the plan in 3-5 bullets and wait for a go.
-- Every parser/pagination change ships with a test against the corpus in `test-corpus/`.
 - Keep `docs/CHANGELOG.md` current. Keep `docs/screenwriting-app-plan.md` current when scope changes.
-- Commands: `pnpm install`, `pnpm dev`, `pnpm test`, `pnpm build`. Update this list if they change.
+- Commands: `pnpm install`, `pnpm dev`, `pnpm test`, `pnpm lint`, `pnpm build`. Update this list if they change.
 
 ## Current phase
-Phase 2 complete, v0.1 "Write" shipped (Oct 12, 2026). Editor shell in `apps/desktop`: Tiptap editor with one `element` node typed by attribute, auto element detection, Enter/Tab keyboard model, autosave + atomic writes + snapshots (restore dialog), live page count and page-break markers from the core paginator, scene navigator with reorder, title page editor, find/replace, dark and focus modes, PDF/FDX/Fountain export, templates, electron-builder packaging and a tag-triggered release workflow (`.github/workflows/release.yml`). Known deferrals: continuous column view (page markers, not page cards), button-based scene reorder, OS spellcheck only. Earlier: Phase 1 core library (`packages/core`: parser/serializer, pagination with MORE/CONT'D and orphan rules, FDX, PDF; Big Fish 125 pages vs ~124 in FD) and `packages/cli`. Next: v0.2 "Import" (FDX/DOCX/MD/TXT/PDF importers, element classifier, review pane).
+v0.1 "Write" shipped and accepted (Oct 12, 2026): see `docs/acceptance/v0.1.md` (all checked, evidence in `docs/evidence/`) and `docs/releases/v0.1-report.md`. Release: https://github.com/rmbeeler1/spec/releases/tag/v0.1.0. Now in v0.2 "Import": acceptance draft at `docs/acceptance/v0.2.md` (awaiting owner confirmation), building the element classifier and DOCX/TXT/MD importers in `packages/core/src/import/` with corpus tests first, then the PDF text-layer importer and the review pane UI.

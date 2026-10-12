@@ -36,6 +36,9 @@ import { StatusBar } from './components/StatusBar'
 import { FindReplace } from './components/FindReplace'
 import { TitlePageDialog } from './components/TitlePageDialog'
 import { SnapshotsDialog } from './components/SnapshotsDialog'
+import { ElementToolbar } from './components/ElementToolbar'
+import { ShortcutsDialog } from './components/ShortcutsDialog'
+import { FirstLaunchHint } from './components/FirstLaunchHint'
 
 type SaveState = 'saved' | 'editing' | 'unsaved-no-file'
 
@@ -54,6 +57,14 @@ export default function App(): React.JSX.Element {
   const [showFind, setShowFind] = useState(false)
   const [showTitlePage, setShowTitlePage] = useState(false)
   const [showSnapshots, setShowSnapshots] = useState(false)
+  const [showShortcuts, setShowShortcuts] = useState(false)
+  const [showHint, setShowHint] = useState(() => localStorage.getItem('spec:hint-seen') !== '1')
+  const modKey = window.spec.platform === 'darwin' ? '⌘' : 'Ctrl+'
+
+  const dismissHint = (): void => {
+    localStorage.setItem('spec:hint-seen', '1')
+    setShowHint(false)
+  }
 
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const paginateTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -234,6 +245,12 @@ export default function App(): React.JSX.Element {
         case 'view:title-page':
           setShowTitlePage(true)
           break
+        case 'help:shortcuts':
+          setShowShortcuts(true)
+          break
+        case 'help:welcome':
+          setShowHint(true)
+          break
       }
     })
     window.spec.onFileOpened((f) => loadContent(f.content, f.path))
@@ -256,6 +273,14 @@ export default function App(): React.JSX.Element {
         }}
       />
       <main className="editor-pane">
+        <ElementToolbar
+          currentType={currentType}
+          modKey={modKey}
+          onSetType={(type) =>
+            editor && editor.chain().focus().updateAttributes('element', { type }).run()
+          }
+          onHelp={() => setShowShortcuts(true)}
+        />
         {showFind && editor && (
           <FindReplace
             onFindNext={(q) => {
@@ -302,6 +327,17 @@ export default function App(): React.JSX.Element {
           filePath={filePath}
           onRestore={(content) => loadContent(content, filePath)}
           onClose={() => setShowSnapshots(false)}
+        />
+      )}
+      {showShortcuts && <ShortcutsDialog modKey={modKey} onClose={() => setShowShortcuts(false)} />}
+      {showHint && !showShortcuts && (
+        <FirstLaunchHint
+          modKey={modKey}
+          onShowShortcuts={() => {
+            dismissHint()
+            setShowShortcuts(true)
+          }}
+          onDismiss={dismissHint}
         />
       )}
     </div>

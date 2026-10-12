@@ -1,6 +1,14 @@
 import { Extension } from '@tiptap/core'
 import type { ElementType } from '@spec/core'
-import { cycleType, detectTypeOnEnter, nextTypeOnEnter, typeForShortcut } from './keymapLogic'
+import {
+  cycleType,
+  detectTypeOnEnter,
+  needsContd,
+  nextTypeOnEnter,
+  normalizeSceneHeading,
+  typeForShortcut,
+  withContd
+} from './keymapLogic'
 
 /**
  * Enter: finish the current element (running auto detection on it) and start
@@ -30,7 +38,36 @@ export const ScreenplayKeymap = Extension.create({
         }
 
         const detected = detectTypeOnEnter(node.textContent, current)
+
+        // Text fixups on the element being finished: normalize scene heading
+        // prefixes and add (CONT'D) when the same character speaks again.
+        let replacement: string | null = null
+        if (detected === 'scene_heading') {
+          const normalized = normalizeSceneHeading(node.textContent)
+          if (normalized !== node.textContent) replacement = normalized
+        } else if (detected === 'character') {
+          const $from = state.selection.$from
+          const index = $from.index(0)
+          const previous: Array<{ type: ElementType; text: string }> = []
+          for (let i = 0; i < index; i++) {
+            const child = state.doc.child(i)
+            previous.push({ type: child.attrs['type'] as ElementType, text: child.textContent })
+          }
+          if (needsContd(previous, node.textContent)) {
+            replacement = withContd(node.textContent)
+          }
+        }
+
+        const contentFrom = state.selection.$from.start()
+        const contentTo = state.selection.$from.end()
         const chain = this.editor.chain()
+        if (replacement !== null) {
+          const text = replacement
+          chain.command(({ tr }) => {
+            tr.insertText(text, contentFrom, contentTo)
+            return true
+          })
+        }
         if (detected !== current) chain.updateAttributes('element', { type: detected })
         return chain
           .splitBlock({ keepMarks: false })

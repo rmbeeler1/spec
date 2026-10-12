@@ -33,6 +33,8 @@ export type MenuCommand =
   | 'view:toggle-dark'
   | 'view:toggle-focus'
   | 'view:title-page'
+  | 'help:shortcuts'
+  | 'help:welcome'
 
 export interface SpecApi {
   platform: string

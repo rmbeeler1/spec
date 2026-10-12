@@ -14,5 +14,15 @@ export default tseslint.config(
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    // Plain Node scripts (build helpers) use Node globals
+    files: ['**/*.mjs'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly'
+      }
+    }
+  },
   prettier
 )
