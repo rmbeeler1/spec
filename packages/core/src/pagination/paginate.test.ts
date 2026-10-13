@@ -147,3 +147,53 @@ describe('forced page breaks', () => {
     expect(pages.length).toBe(2)
   })
 })
+
+describe('dual dialogue', () => {
+  const DUAL = `INT. KITCHEN - DAY
+
+MAYA
+I was here first and I am not
+leaving this kitchen tonight.
+
+SCOTT ^
+(overlapping)
+You always say that and you
+always leave anyway.
+
+They glare at each other.
+`
+
+  it('renders paired speeches side by side on one set of lines', () => {
+    const script = parseFountain(DUAL, { idGenerator: sequentialIdGenerator() })
+    const lines = paginate(script).flatMap((p) => p.lines)
+    // Both cues share the first dual row: MAYA left, SCOTT right
+    const cueRow = lines.find((l) => l.text.includes('MAYA'))!
+    expect(cueRow.text).toContain('SCOTT')
+    expect(cueRow.text.indexOf('MAYA')).toBeLessThan(cueRow.text.indexOf('SCOTT'))
+    // The right column starts at its fixed offset
+    expect(cueRow.text.indexOf('SCOTT')).toBeGreaterThanOrEqual(32)
+    // Dialogue rows carry both columns too
+    const bothRow = lines.find((l) => l.text.includes('leaving this kitchen'))!
+    expect(bothRow.text.length).toBeGreaterThan(32)
+    // The action after the pair is its own ordinary line
+    expect(lines.some((l) => l.text === 'They glare at each other.')).toBe(true)
+  })
+
+  it('keeps a dual pair together across a page break', () => {
+    const filler = Array.from({ length: 60 }, (_, i) => `Filler action line ${i}.`).join('\n\n')
+    const script = parseFountain(`INT. A - DAY\n\n${filler}\n\n${DUAL.split('\n\n').slice(1).join('\n\n')}`, {
+      idGenerator: sequentialIdGenerator()
+    })
+    const pages = paginate(script)
+    // Find the page holding the pair: every dual row sits on one page
+    const pageWithCue = pages.findIndex((p) => p.lines.some((l) => l.text.includes('SCOTT')))
+    const rows = pages[pageWithCue]!.lines.filter((l) => l.text.includes('always leave') || l.text.includes('MAYA'))
+    expect(pageWithCue).toBeGreaterThan(-1)
+    expect(rows.length).toBeGreaterThan(0)
+    for (const p of pages) {
+      const hasCue = p.lines.some((l) => l.text.includes('MAYA'))
+      const hasTail = p.lines.some((l) => l.text.includes('always leave anyway.'))
+      expect(hasCue).toBe(hasTail) // the pair never splits
+    }
+  })
+})

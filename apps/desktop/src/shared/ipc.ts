@@ -33,6 +33,7 @@ export type MenuCommand =
   | 'file:restore-snapshot'
   | 'edit:find'
   | 'edit:stash-selection'
+  | 'edit:toggle-dual'
   | 'view:toggle-dark'
   | 'view:toggle-focus'
   | 'view:toggle-structure'

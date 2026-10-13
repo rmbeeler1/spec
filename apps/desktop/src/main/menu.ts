@@ -84,6 +84,11 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
           label: 'Send Selection to Stash',
           accelerator: 'CmdOrCtrl+Alt+X',
           click: () => send('edit:stash-selection')
+        },
+        {
+          label: 'Toggle Dual Dialogue',
+          accelerator: 'CmdOrCtrl+Alt+D',
+          click: () => send('edit:toggle-dual')
         }
       ]
     },

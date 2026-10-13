@@ -122,6 +122,65 @@ export const SceneDim = Extension.create({
 })
 
 /**
+ * Dual dialogue columns. The doc stays flat; CSS does the layout: the first
+ * speech's elements get el-dual-left (floated), the ^-cued speech gets
+ * el-dual-right (normal flow beside the float, so the tops align), and the
+ * next element clears the float.
+ */
+const SPEECH_CHILD = new Set(['dialogue', 'parenthetical', 'lyric'])
+
+function buildDualDecorations(doc: PmNode): DecorationSet {
+  const decorations: Decoration[] = []
+  const children: Array<{ node: PmNode; pos: number }> = []
+  doc.forEach((node, offset) => children.push({ node, pos: offset }))
+
+  const typeOf = (i: number): string => children[i]!.node.attrs['type'] as string
+  const mark = (i: number, cls: string): void => {
+    const { node, pos } = children[i]!
+    decorations.push(Decoration.node(pos, pos + node.nodeSize, { class: cls }))
+  }
+
+  for (let i = 0; i < children.length; i++) {
+    if (typeOf(i) !== 'character' || children[i]!.node.attrs['dual'] !== true) continue
+    // Walk back over the left speech to its cue
+    let cue = -1
+    for (let b = i - 1; b >= 0; b--) {
+      const t = typeOf(b)
+      if (SPEECH_CHILD.has(t)) continue
+      if (t === 'character') cue = b
+      break
+    }
+    if (cue === -1) continue
+    for (let l = cue; l < i; l++) mark(l, 'el-dual-left')
+    let r = i
+    mark(r, 'el-dual-right')
+    while (r + 1 < children.length && SPEECH_CHILD.has(typeOf(r + 1))) mark(++r, 'el-dual-right')
+    if (r + 1 < children.length) mark(r + 1, 'el-dual-end')
+    i = r
+  }
+  return DecorationSet.create(doc, decorations)
+}
+
+export const DualColumns = Extension.create({
+  name: 'dualColumns',
+  addProseMirrorPlugins() {
+    return [
+      new Plugin<DecorationSet>({
+        state: {
+          init: (_config, state) => buildDualDecorations(state.doc),
+          apply: (tr, old) => (tr.docChanged ? buildDualDecorations(tr.doc) : old)
+        },
+        props: {
+          decorations(state) {
+            return this.getState(state)
+          }
+        }
+      })
+    ]
+  }
+})
+
+/**
  * Marks the element containing the caret with a class, so focus mode can dim
  * everything else with plain CSS.
  */

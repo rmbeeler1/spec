@@ -39,7 +39,13 @@ export function paginate(script: Script, partial: Partial<PaginationConfig> = {}
 // Blocks: units the page filler places, with keep-together rules
 // ---------------------------------------------------------------------------
 
-type BlockKind = 'heading' | 'dialogue' | 'flow' | 'transition' | 'forced_break'
+type BlockKind = 'heading' | 'dialogue' | 'dual' | 'flow' | 'transition' | 'forced_break'
+
+// Dual dialogue geometry within the 60-character text column
+const DUAL_COL_WIDTH = 28
+const DUAL_RIGHT_START = 32
+const DUAL_CUE_OFFSET = 9
+const DUAL_PAREN_OFFSET = 4
 
 interface DialogueLine extends RenderLine {
   role: 'cue' | 'parenthetical' | 'dialogue'
@@ -84,6 +90,27 @@ function buildBlocks(script: Script, config: PaginationConfig): Block[] {
         }
         j++
       }
+
+      // A following speech whose cue carries ^ pairs up side by side
+      if (j < els.length && els[j]!.type === 'character' && els[j]!.dual === true) {
+        let k = j + 1
+        while (
+          k < els.length &&
+          (els[k]!.type === 'parenthetical' ||
+            els[k]!.type === 'dialogue' ||
+            els[k]!.type === 'lyric')
+        ) {
+          k++
+        }
+        blocks.push({
+          kind: 'dual',
+          lines: renderDualBlock(els.slice(i, j), els.slice(j, k)),
+          blanksBefore: config.blankLinesBefore.character ?? 1
+        })
+        i = k
+        continue
+      }
+
       blocks.push({
         kind: 'dialogue',
         lines,
@@ -104,6 +131,52 @@ function buildBlocks(script: Script, config: PaginationConfig): Block[] {
     i++
   }
   return blocks
+}
+
+/** One column of a dual-dialogue pair: wrapped plain lines with offsets. */
+function renderDualColumn(els: ScriptElement[]): Array<{ text: string; offset: number }> {
+  const out: Array<{ text: string; offset: number }> = []
+  for (const el of els) {
+    const offset =
+      el.type === 'character'
+        ? DUAL_CUE_OFFSET
+        : el.type === 'parenthetical'
+          ? DUAL_PAREN_OFFSET
+          : 0
+    const { text: plain } = parseEmphasis(el.text)
+    for (const sourceLine of plain.split('\n')) {
+      for (const [start, end] of wrapLine(sourceLine, DUAL_COL_WIDTH - offset)) {
+        out.push({ text: sourceLine.slice(start, end), offset })
+      }
+    }
+  }
+  return out
+}
+
+/**
+ * Two speeches as side-by-side columns. Each output line is plain text with
+ * both columns baked in (left at 0, right at DUAL_RIGHT_START), so the page
+ * filler and the PDF treat it like any other line. Emphasis inside dual
+ * dialogue is dropped; the columns are the point.
+ */
+function renderDualBlock(left: ScriptElement[], right: ScriptElement[]): RenderLine[] {
+  const l = renderDualColumn(left)
+  const r = renderDualColumn(right)
+  const rows = Math.max(l.length, r.length)
+  const lines: RenderLine[] = []
+  for (let i = 0; i < rows; i++) {
+    const lt = l[i] ? ' '.repeat(l[i]!.offset) + l[i]!.text : ''
+    const rt = r[i] ? ' '.repeat(r[i]!.offset) + r[i]!.text : ''
+    const text = rt.length > 0 ? lt.padEnd(DUAL_RIGHT_START) + rt : lt
+    lines.push({
+      elementId: left[0]?.id ?? null,
+      type: 'dialogue',
+      text,
+      indent: 0,
+      spans: []
+    })
+  }
+  return lines
 }
 
 /** Wrap one element into render lines. */
@@ -217,6 +290,30 @@ function fillPages(blocks: Block[], config: PaginationConfig): RenderPage[] {
 
     if (block.kind === 'dialogue') {
       placeDialogue(block, blanks)
+      continue
+    }
+
+    if (block.kind === 'dual') {
+      // Dual pairs stay together; only a pair taller than a full page splits
+      if (blanks + block.lines.length > room() && used() > 0 && block.lines.length <= config.linesPerPage) {
+        newPage()
+      }
+      let lines = block.lines
+      let first = true
+      while (lines.length > 0) {
+        const blanksNow = used() === 0 ? 0 : first ? blanks : 0
+        if (room() - blanksNow < 1) {
+          newPage()
+          first = false
+          continue
+        }
+        pushBlank(blanksNow)
+        const take = Math.min(lines.length, room())
+        current.push(...lines.slice(0, take))
+        lines = lines.slice(take)
+        first = false
+        if (lines.length > 0) newPage()
+      }
       continue
     }
 

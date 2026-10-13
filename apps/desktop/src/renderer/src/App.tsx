@@ -34,7 +34,15 @@ import {
   ScreenplayText
 } from './editor/schema'
 import { ScreenplayKeymap } from './editor/keymap'
-import { CurrentElement, PageBreaks, SceneDim, pageBreaksKey, sceneDimKey } from './editor/plugins'
+import {
+  CurrentElement,
+  DualColumns,
+  PageBreaks,
+  SceneDim,
+  pageBreaksKey,
+  sceneDimKey
+} from './editor/plugins'
+import { toggleDualOnCurrentSpeech } from './editor/dual'
 import { computePageBreakMap } from './editor/pageMap'
 import { scriptToDoc, docToScript, type PmDoc } from './editor/convert'
 import {
@@ -176,6 +184,7 @@ export default function App(): React.JSX.Element {
       ScreenplayKeymap,
       PageBreaks,
       SceneDim,
+      DualColumns,
       CurrentElement,
       UndoRedo
     ],
@@ -712,6 +721,11 @@ export default function App(): React.JSX.Element {
         case 'edit:stash-selection':
           stashSelection()
           break
+        case 'edit:toggle-dual': {
+          const ed = stateRef.current.editor
+          if (ed && toggleDualOnCurrentSpeech(ed)) refreshDerived(ed)
+          break
+        }
         case 'view:toggle-dark':
           setDark((d) => !d)
           break

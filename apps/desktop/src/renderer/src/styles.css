@@ -1346,6 +1346,42 @@ body {
   text-transform: uppercase;
 }
 
+/* Dual dialogue: left speech floats, right speech flows beside it, so the
+   two cues share a top edge without any wrapper in the document */
+.tiptap .el-dual-left {
+  float: left;
+  clear: left;
+  width: 47%;
+  margin-left: 0 !important;
+  max-width: none !important;
+}
+
+.tiptap .el-dual-right {
+  margin-left: 53% !important;
+  width: 47%;
+  max-width: none !important;
+}
+
+.tiptap .el-dual-left.el-character,
+.tiptap .el-dual-right.el-character {
+  padding-left: 7ch;
+  margin-top: 1em !important;
+}
+
+.tiptap .el-dual-left.el-parenthetical,
+.tiptap .el-dual-right.el-parenthetical {
+  padding-left: 3ch;
+}
+
+.tiptap .el-dual-right.el-character::after {
+  content: ' ⇄';
+  color: var(--accent);
+}
+
+.tiptap .el-dual-end {
+  clear: left;
+}
+
 /* Planning elements: visible in the editor, never on the page */
 .el-section {
   color: var(--accent);
