@@ -46,7 +46,10 @@ export {
   type SceneMeta,
   type SceneRef,
   type StashEntry,
-  type Storyline
+  type Storyline,
+  type WritingDay,
+  type WritingGoal,
+  type WritingStats
 } from './planning/sidecar'
 export {
   baseCharacterName,

@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
-import { buildReports, reportToCsv, reportToText, type Script } from '@spec/core'
+import { buildReports, reportToCsv, reportToText, type ReportTable, type Script } from '@spec/core'
 
 interface Props {
   script: Script
+  /** App-supplied tables (writing stats) shown after the script reports. */
+  extraTables?: ReportTable[]
   /** Suggested file base name, usually the script title. */
   baseName: string
 }
@@ -11,8 +13,11 @@ interface Props {
  * Production reports, computed live from the script. Each report exports as
  * plain text (aligned columns) or CSV for a spreadsheet.
  */
-export function ReportsView({ script, baseName }: Props): React.JSX.Element {
-  const reports = useMemo(() => buildReports(script), [script])
+export function ReportsView({ script, extraTables, baseName }: Props): React.JSX.Element {
+  const reports = useMemo(
+    () => [...buildReports(script), ...(extraTables ?? [])],
+    [script, extraTables]
+  )
   const [active, setActive] = useState(reports[0]?.id ?? 'scenes')
   const table = reports.find((r) => r.id === active) ?? reports[0]
 

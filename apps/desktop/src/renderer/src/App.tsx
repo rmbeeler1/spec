@@ -61,7 +61,10 @@ import {
 import { buildSceneCards, pacingLanes, type SceneCard } from './planning/cards'
 import {
   addStashEntry,
+  localDay,
   orphanSceneEntries,
+  recordWriting,
+  setWritingGoal,
   patchSceneMeta,
   reattachSceneMeta,
   refreshHeadings,
@@ -95,6 +98,7 @@ import { OrphanPrompt } from './components/OrphanPrompt'
 import { OrphanMetaBanner } from './components/OrphanMetaBanner'
 import { AboutDialog } from './components/AboutDialog'
 import { ReportsView } from './components/ReportsView'
+import { GoalDialog } from './components/GoalDialog'
 import { routeImport, type PendingImport } from './import/route'
 
 type SaveState = 'saved' | 'editing' | 'unsaved-no-file'
@@ -133,6 +137,7 @@ export default function App(): React.JSX.Element {
   const [showSnapshots, setShowSnapshots] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
+  const [showGoal, setShowGoal] = useState(false)
   const [showRename, setShowRename] = useState(false)
   const [renameError, setRenameError] = useState<string | null>(null)
   const [orphan, setOrphan] = useState<OrphanSidecarInfo | null>(null)
@@ -155,6 +160,12 @@ export default function App(): React.JSX.Element {
   const chunkArchive = useRef(new Map<string, StashItemView>())
   const planningLoaded = useRef(false)
   const structureCount = useRef(0)
+  /** Writing stats: word baseline, pending uncommitted words, page baseline.
+   *  Imports and undo/redo reset the baseline instead of counting. */
+  const wordBaseline = useRef<number | null>(null)
+  const pendingWords = useRef(0)
+  const pageBaseline = useRef<number | null>(null)
+  const suppressStats = useRef(false)
 
   const editor = useEditor({
     extensions: [
@@ -196,6 +207,18 @@ export default function App(): React.JSX.Element {
         setPageCount(Math.max(1, pages.length))
         const breaks = computePageBreakMap(pages)
         ed.view.dispatch(ed.state.tr.setMeta(pageBreaksKey, { breaks }))
+
+        // Flush writing stats at most once per idle pause, never per keystroke
+        if (planningLoaded.current) {
+          const pagesDelta =
+            pageBaseline.current === null ? 0 : pages.length - pageBaseline.current
+          pageBaseline.current = pages.length
+          const words = pendingWords.current
+          pendingWords.current = 0
+          if (words > 0 || pagesDelta > 0) {
+            setPlanning((p) => recordWriting(p, localDay(), words, pagesDelta))
+          }
+        }
       }, PAGINATE_DELAY_MS)
     },
     [currentScript]
@@ -215,6 +238,21 @@ export default function App(): React.JSX.Element {
     const ids = new Set(scenes.filter((s) => s.id).map((s) => s.id!))
     return orphanSceneEntries(planning, ids)
   }, [planning, scenes])
+  const today = useMemo(() => {
+    const entry = planning.writing?.history.find((h) => h.date === localDay())
+    return { words: entry?.words ?? 0, pages: entry?.pages ?? 0 }
+  }, [planning])
+  const writingTable = useMemo(
+    () => ({
+      id: 'writing',
+      title: 'Writing',
+      columns: ['Date', 'Words', 'Pages'],
+      rows: [...(planning.writing?.history ?? [])]
+        .reverse()
+        .map((h) => [h.date, String(h.words), String(h.pages)])
+    }),
+    [planning]
+  )
   const sceneColors = useMemo(() => {
     const out = new Map<string, string>()
     for (const [id, meta] of sceneMetaMap(planning)) {
@@ -338,6 +376,14 @@ export default function App(): React.JSX.Element {
       structureCount.current = script.elements.filter(
         (e) => e.type === 'section' || e.type === 'synopsis'
       ).length
+      // Opened or imported text is a new baseline, never "written today"
+      const doc = ed.state.doc
+      wordBaseline.current = doc
+        .textBetween(0, doc.content.size, '\n')
+        .split(/\s+/)
+        .filter((w) => w.length > 0).length
+      pendingWords.current = 0
+      pageBaseline.current = null
       refreshDerived(ed)
       void loadPlanningFor(path, script)
     },
@@ -439,7 +485,11 @@ export default function App(): React.JSX.Element {
       const ed = stateRef.current.editor
       const item = stateRef.current.stashItems.find((i) => i.chunk.id === chunkId)
       if (!ed || !item) return
-      if (!insertFountainAfterCaret(ed, stashChunkFountain(item.chunk))) return
+      suppressStats.current = true // restored text is not "written today"
+      if (!insertFountainAfterCaret(ed, stashChunkFountain(item.chunk))) {
+        suppressStats.current = false
+        return
+      }
       setStashItems((items) => items.filter((i) => i.chunk.id !== chunkId))
       setPlanning((p) => removeStashEntry(p, chunkId))
       setView('write')
@@ -491,6 +541,7 @@ export default function App(): React.JSX.Element {
         const match = pairing.current.matchRedo(undoDepth(ed.state))
         e.preventDefault()
         e.stopPropagation()
+        suppressStats.current = true
         ed.commands.redo()
         if (match) applyStashSide(match.kind, match.entryId, false)
         refreshDerived(ed)
@@ -498,6 +549,7 @@ export default function App(): React.JSX.Element {
         const match = pairing.current.matchUndo(undoDepth(ed.state))
         e.preventDefault()
         e.stopPropagation()
+        suppressStats.current = true
         ed.commands.undo()
         if (match) applyStashSide(match.kind, match.entryId, true)
         refreshDerived(ed)
@@ -548,6 +600,20 @@ export default function App(): React.JSX.Element {
       const path = stateRef.current.filePath
       setSaveState(path ? 'editing' : 'unsaved-no-file')
       window.spec.setDocumentState(path, true)
+
+      // Words written: positive deltas only, batched until the next idle
+      // flush. Undo/redo realigns the baseline without counting.
+      const doc = editor.state.doc
+      const words = doc
+        .textBetween(0, doc.content.size, '\n')
+        .split(/\s+/)
+        .filter((w) => w.length > 0).length
+      if (suppressStats.current || wordBaseline.current === null) {
+        suppressStats.current = false
+      } else if (words > wordBaseline.current) {
+        pendingWords.current += words - wordBaseline.current
+      }
+      wordBaseline.current = words
 
       // Typing a # or = line while structure is hidden would make it vanish;
       // auto-show structure instead (owner decision, Oct 2026).
@@ -675,6 +741,9 @@ export default function App(): React.JSX.Element {
           if (ed && renumberScenes(ed)) refreshDerived(ed)
           break
         }
+        case 'production:writing-goal':
+          setShowGoal(true)
+          break
         case 'production:toggle-number-lock':
           setPlanning((p) => {
             const next = { ...p }
@@ -875,6 +944,7 @@ export default function App(): React.JSX.Element {
           {view === 'reports' && (
             <ReportsView
               script={script}
+              extraTables={[writingTable]}
               baseName={
                 titlePage.find((e) => e.key.toLowerCase() === 'title')?.values[0] ?? 'Untitled'
               }
@@ -896,6 +966,8 @@ export default function App(): React.JSX.Element {
           sceneCount={scenes.length}
           filePath={filePath}
           saveState={saveState}
+          today={today}
+          goal={planning.writing?.goal}
         />
       </main>
       {showTitlePage && (
@@ -955,6 +1027,13 @@ export default function App(): React.JSX.Element {
       )}
       {showShortcuts && <ShortcutsDialog modKey={modKey} onClose={() => setShowShortcuts(false)} />}
       {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
+      {showGoal && (
+        <GoalDialog
+          goal={planning.writing?.goal}
+          onApply={(goal) => setPlanning((p) => setWritingGoal(p, goal))}
+          onClose={() => setShowGoal(false)}
+        />
+      )}
       {showHint && !showShortcuts && (
         <FirstLaunchHint
           modKey={modKey}

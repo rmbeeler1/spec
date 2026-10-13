@@ -1735,6 +1735,27 @@ body {
   font-weight: 600;
 }
 
+.status-goal {
+  color: var(--muted);
+}
+
+.status-goal.met {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.dialog select {
+  display: block;
+  width: 100%;
+  margin-top: 3px;
+  padding: 5px 8px;
+  border: 1px solid var(--chrome-border);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+}
+
 .status-file {
   margin-left: auto;
   white-space: nowrap;

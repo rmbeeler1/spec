@@ -46,6 +46,7 @@ export type MenuCommand =
   | 'view:reports'
   | 'production:renumber'
   | 'production:toggle-number-lock'
+  | 'production:writing-goal'
   | 'help:shortcuts'
   | 'help:welcome'
   | 'help:about'

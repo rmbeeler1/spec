@@ -1,9 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import { emptyPlanning, parseFountain, sequentialIdGenerator, type PlanningData } from '@spec/core'
+import {
+  emptyPlanning,
+  parseFountain,
+  parsePlanning,
+  sequentialIdGenerator,
+  serializePlanning,
+  type PlanningData
+} from '@spec/core'
 import { buildSceneCards, formatEighths, formatMinutes, pacingLanes } from './cards'
 import {
+  localDay,
   orphanSceneEntries,
   patchSceneMeta,
+  recordWriting,
+  setWritingGoal,
   reattachSceneMeta,
   refreshHeadings,
   removeBeat,
@@ -160,6 +170,35 @@ describe('planning state helpers', () => {
     expect(d.stash.map((s) => s.id)).toEqual(['b', 'a'])
     d = removeStashEntry(d, 'a')
     expect(d.stash.map((s) => s.id)).toEqual(['b'])
+  })
+})
+
+describe('writing stats', () => {
+  it('accumulates per day, ignores non-positive deltas, sorts history', () => {
+    let d = recordWriting(emptyPlanning(), '2026-10-12', 120, 1)
+    d = recordWriting(d, '2026-10-12', 80, 0)
+    d = recordWriting(d, '2026-10-11', 50, 0)
+    d = recordWriting(d, '2026-10-12', -30, -1) // deletions never subtract
+    expect(d.writing!.history).toEqual([
+      { date: '2026-10-11', words: 50, pages: 0 },
+      { date: '2026-10-12', words: 200, pages: 1 }
+    ])
+  })
+
+  it('round-trips through the sidecar with a goal', () => {
+    let d = recordWriting(emptyPlanning(), '2026-10-12', 10, 0)
+    d = setWritingGoal(d, { kind: 'words', perDay: 500 })
+    const back = parsePlanning(serializePlanning(d))
+    expect(back.hadErrors).toBe(false)
+    expect(back.data.writing).toEqual(d.writing)
+    // clearing the goal with no history removes the block entirely
+    const cleared = setWritingGoal(emptyPlanning(), undefined)
+    expect(cleared.writing).toBeUndefined()
+  })
+
+  it('localDay formats a local calendar date', () => {
+    expect(localDay(new Date(2026, 9, 12, 23, 59))).toBe('2026-10-12')
+    expect(localDay(new Date(2026, 0, 2, 0, 1))).toBe('2026-01-02')
   })
 })
 

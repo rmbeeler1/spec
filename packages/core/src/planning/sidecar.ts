@@ -54,6 +54,25 @@ export interface Storyline {
   color: string
 }
 
+export interface WritingDay {
+  /** Local date, YYYY-MM-DD. */
+  date: string
+  /** Words added that day (deletions never subtract; imports never count). */
+  words: number
+  /** Net pages added that day, by the real paginator. */
+  pages: number
+}
+
+export interface WritingGoal {
+  kind: 'words' | 'pages'
+  perDay: number
+}
+
+export interface WritingStats {
+  history: WritingDay[]
+  goal?: WritingGoal
+}
+
 export interface PlanningData {
   version: 1
   scenes: SceneMeta[]
@@ -63,6 +82,8 @@ export interface PlanningData {
   storylines: Storyline[]
   /** Production: locked numbering gives inserted scenes A-numbers (12A). */
   numberingLocked?: boolean
+  /** Writing stats and the per-script daily goal. */
+  writing?: WritingStats
 }
 
 export function emptyPlanning(): PlanningData {
@@ -77,7 +98,9 @@ export function isPlanningEmpty(data: PlanningData): boolean {
     data.beatLinks.length === 0 &&
     data.stash.length === 0 &&
     data.storylines.length === 0 &&
-    data.numberingLocked !== true
+    data.numberingLocked !== true &&
+    (data.writing === undefined ||
+      (data.writing.history.length === 0 && data.writing.goal === undefined))
   )
 }
 
@@ -186,6 +209,31 @@ export function parsePlanning(json: string): { data: PlanningData; hadErrors: bo
 
   const data: PlanningData = { version: 1, scenes, beats, beatLinks, stash, storylines }
   if (o['numberingLocked'] === true) data.numberingLocked = true
+
+  const w = o['writing'] as Record<string, unknown> | undefined
+  if (typeof w === 'object' && w !== null) {
+    const history: WritingDay[] = []
+    for (const d of arr(w['history'])) {
+      const e = d as Record<string, unknown>
+      if (str(e['date']) && typeof e['words'] === 'number' && typeof e['pages'] === 'number') {
+        history.push({ date: e['date'], words: e['words'], pages: e['pages'] })
+      } else {
+        hadErrors = true
+      }
+    }
+    const writing: WritingStats = { history }
+    const g = w['goal'] as Record<string, unknown> | undefined
+    if (
+      typeof g === 'object' &&
+      g !== null &&
+      (g['kind'] === 'words' || g['kind'] === 'pages') &&
+      typeof g['perDay'] === 'number' &&
+      g['perDay'] > 0
+    ) {
+      writing.goal = { kind: g['kind'], perDay: g['perDay'] }
+    }
+    if (history.length > 0 || writing.goal) data.writing = writing
+  }
   return { data, hadErrors }
 }
 

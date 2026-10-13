@@ -141,7 +141,9 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
         {
           label: 'Lock Scene Numbers',
           click: () => send('production:toggle-number-lock')
-        }
+        },
+        { type: 'separator' },
+        { label: 'Writing Goal…', click: () => send('production:writing-goal') }
       ]
     },
     { role: 'windowMenu' },

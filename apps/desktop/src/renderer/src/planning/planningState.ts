@@ -1,4 +1,45 @@
-import type { BeatCard, BeatLink, PlanningData, SceneMeta, StashEntry } from '@spec/core'
+import type {
+  BeatCard,
+  BeatLink,
+  PlanningData,
+  SceneMeta,
+  StashEntry,
+  WritingGoal
+} from '@spec/core'
+
+/** Local calendar date as YYYY-MM-DD (never UTC: writing days are your days). */
+export function localDay(d = new Date()): string {
+  const pad = (n: number): string => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/** Add words/pages written to the given day's tally. Negatives never count. */
+export function recordWriting(
+  data: PlanningData,
+  date: string,
+  wordsDelta: number,
+  pagesDelta: number
+): PlanningData {
+  const words = Math.max(0, wordsDelta)
+  const pages = Math.max(0, pagesDelta)
+  if (words === 0 && pages === 0) return data
+  const history = [...(data.writing?.history ?? [])]
+  const i = history.findIndex((h) => h.date === date)
+  if (i === -1) history.push({ date, words, pages })
+  else history[i] = { ...history[i]!, words: history[i]!.words + words, pages: history[i]!.pages + pages }
+  history.sort((a, b) => a.date.localeCompare(b.date))
+  return { ...data, writing: { ...(data.writing ?? {}), history } }
+}
+
+export function setWritingGoal(data: PlanningData, goal: WritingGoal | undefined): PlanningData {
+  const history = data.writing?.history ?? []
+  if (!goal && history.length === 0) {
+    const next = { ...data }
+    delete next.writing
+    return next
+  }
+  return { ...data, writing: { history, ...(goal ? { goal } : {}) } }
+}
 
 /**
  * Immutable update helpers for the planning sidecar data. All of them return
