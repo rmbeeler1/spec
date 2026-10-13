@@ -25,6 +25,7 @@ import {
 } from './planningState'
 import { UndoPairing } from './undoPairing'
 import { detectStructure } from '../editor/keymapLogic'
+import { dualToggleDecision } from '../editor/dual'
 
 const SCRIPT = `# Act One
 
@@ -224,6 +225,50 @@ describe('UndoPairing', () => {
     expect(p.matchUndo(3)).not.toBeNull()
     p.record('restore', 'e2', 4)
     expect(p.matchRedo(3)).toBeNull()
+  })
+})
+
+describe('dualToggleDecision', () => {
+  const el = (type: string, dual = false) => ({ type, dual })
+  // [heading, action, MAYA, dialog, SCOTT, (paren), dialog, action]
+  const DOC = [
+    el('scene_heading'),
+    el('action'),
+    el('character'),
+    el('dialogue'),
+    el('character'),
+    el('parenthetical'),
+    el('dialogue'),
+    el('action')
+  ]
+
+  it('caret in the second speech marks its own cue', () => {
+    expect(dualToggleDecision(DOC, 6)).toEqual({ targetIndex: 4, makeDual: true })
+    expect(dualToggleDecision(DOC, 5)).toEqual({ targetIndex: 4, makeDual: true })
+    expect(dualToggleDecision(DOC, 4)).toEqual({ targetIndex: 4, makeDual: true })
+  })
+
+  it('caret in the first speech marks the following cue instead', () => {
+    expect(dualToggleDecision(DOC, 3)).toEqual({ targetIndex: 4, makeDual: true })
+    expect(dualToggleDecision(DOC, 2)).toEqual({ targetIndex: 4, makeDual: true })
+  })
+
+  it('unmarks from either speech when the pair exists', () => {
+    const paired = DOC.map((e, i) => (i === 4 ? el('character', true) : e))
+    expect(dualToggleDecision(paired, 6)).toEqual({ targetIndex: 4, makeDual: false })
+    expect(dualToggleDecision(paired, 3)).toEqual({ targetIndex: 4, makeDual: false })
+  })
+
+  it('refuses with a reason when there is no adjacent speech', () => {
+    const lone = [el('scene_heading'), el('action'), el('character'), el('dialogue'), el('action')]
+    const result = dualToggleDecision(lone, 3)
+    expect(result).toHaveProperty('reason')
+    expect((result as { reason: string }).reason).toContain('back to back')
+  })
+
+  it('refuses with guidance when the caret is not in a speech', () => {
+    expect(dualToggleDecision(DOC, 1)).toHaveProperty('reason')
+    expect(dualToggleDecision(DOC, 0)).toHaveProperty('reason')
   })
 })
 

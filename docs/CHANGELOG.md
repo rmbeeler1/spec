@@ -4,6 +4,7 @@ All notable changes to Spec are recorded here.
 
 ## v0.4.0 "Produce" (October 13, 2026, built; tagging awaits the owner's manual checks)
 
+- Dual dialogue is forgiving now (owner report: the toggle did nothing): it works with the caret in either speech of the pair, the shortcut is handled inside the editor as well as by the menu (so nothing at the OS level can eat it), and when it refuses (no adjacent speech) it says why instead of failing silently. Verified live with real Cmd+Shift+B keystrokes.
 - Shortcut audit (owner report: Cmd+Option+D was swallowed by macOS's Dock toggle): every Cmd/Ctrl+Alt binding is gone. Views and the stash pane are Cmd+Ctrl+1..7 on Mac and Ctrl+Shift+1..7 on Windows/Linux, stash selection is Cmd/Ctrl+Shift+X, dual dialogue is Cmd/Ctrl+Shift+B. Every binding in the app is now checked against the macOS and Windows reserved lists, including AltGr layouts; the audit and the rules live in docs/shortcut-audit.md.
 
 - Revision mode: start a colored revision set (standard order, Blue first) from Production > Revision Sets; everything edited while it is active gets a colored asterisk in the editor margin and a bold asterisk in the exported PDF. Marks live in the sidecar as scene/type/text anchors and re-attach after reloads. Omit Scene keeps the heading as OMITTED (scene number intact) and moves the scene to the stash; Un-omit restores it exactly; both pair with Cmd/Ctrl+Z like stash moves.

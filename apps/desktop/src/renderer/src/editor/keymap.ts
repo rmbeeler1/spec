@@ -1,5 +1,6 @@
 import { Extension } from '@tiptap/core'
 import type { ElementType } from '@spec/core'
+import { toggleDualOnCurrentSpeech } from './dual'
 import {
   cycleType,
   detectStructure,
@@ -128,6 +129,17 @@ export const ScreenplayKeymap = Extension.create({
     for (let d = 1; d <= 6; d++) {
       const type = typeForShortcut(d)
       if (type) shortcuts[`Mod-${d}`] = setType(type)
+    }
+
+    // Also bound in the native menu; this editor-level binding makes the
+    // shortcut work even if something at the OS level eats the accelerator,
+    // and lets a refusal explain itself instead of failing silently.
+    shortcuts['Mod-Shift-b'] = () => {
+      const result = toggleDualOnCurrentSpeech(this.editor)
+      if (!result.ok && result.reason) {
+        window.dispatchEvent(new CustomEvent('spec:toast', { detail: result.reason }))
+      }
+      return true
     }
     return shortcuts
   }

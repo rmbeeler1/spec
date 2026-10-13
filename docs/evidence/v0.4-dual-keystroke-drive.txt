@@ -1,0 +1,7 @@
+caret diag: el el-dialogue el-current el-dual-right :: Then you must really love me.
+PASS keystroke in the second speech pairs the speeches
+PASS keystroke again unpairs
+PASS keystroke in the first speech pairs forward
+PASS refusal explains itself (Dual dialogue needs two speeches back to back, with nothing )
+
+4/4 checks passed

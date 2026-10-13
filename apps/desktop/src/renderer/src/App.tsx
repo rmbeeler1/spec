@@ -225,6 +225,11 @@ export default function App(): React.JSX.Element {
   const stateRef = useRef({ filePath, titlePage, editor, view, stashItems, planning, scenes })
   stateRef.current = { filePath, titlePage, editor, view, stashItems, planning, scenes }
 
+  // Test hook: the live drive reads editor state through this. Not an API.
+  useEffect(() => {
+    ;(window as unknown as Record<string, unknown>)['__specEditorForTests'] = editor
+  }, [editor])
+
   const currentScript = useCallback(() => {
     const { editor: ed, titlePage: tp } = stateRef.current
     if (!ed) return { titlePage: tp, elements: [] }
@@ -770,6 +775,16 @@ export default function App(): React.JSX.Element {
     [currentScript]
   )
 
+  // In-editor commands (the dual-dialogue keymap binding) surface their
+  // refusals here, since an extension cannot reach app state directly.
+  useEffect(() => {
+    const onToast = (e: Event): void => {
+      setImportError(String((e as CustomEvent).detail))
+    }
+    window.addEventListener('spec:toast', onToast)
+    return () => window.removeEventListener('spec:toast', onToast)
+  }, [])
+
   // Dropping a script file anywhere on the window imports it.
   useEffect(() => {
     const onDrop = (e: DragEvent): void => {
@@ -940,7 +955,10 @@ export default function App(): React.JSX.Element {
           break
         case 'edit:toggle-dual': {
           const ed = stateRef.current.editor
-          if (ed && toggleDualOnCurrentSpeech(ed)) refreshDerived(ed)
+          if (!ed) break
+          const result = toggleDualOnCurrentSpeech(ed)
+          if (result.ok) refreshDerived(ed)
+          else if (result.reason) setImportError(result.reason)
           break
         }
         case 'view:toggle-dark':

@@ -25,7 +25,7 @@ export function ShortcutsDialog({ modKey, onClose }: Props): React.JSX.Element {
           ['Ctrl+Shift+7', 'Show or hide the stash']
         ] as Array<[string, string]>)),
     [`${modKey}Shift+X`, 'Send the selected lines to the stash'],
-    [`${modKey}Shift+B`, 'Pair the speech at the cursor with the one before it (dual dialogue)'],
+    [`${modKey}Shift+B`, 'Dual dialogue: pair the speech at the cursor with the speech next to it'],
     [`${modKey}Z / ${modKey}Shift+Z`, 'Undo / redo']
   ]
   const tips = [
