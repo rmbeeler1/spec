@@ -8,7 +8,12 @@ All notable changes to Spec are recorded here.
 - Accuracy gates as tests: at least 95% on clean plain text, at least 85% on messy plain text, measured against the Fountain ground truth of the same scripts. Downgrades that plain text makes unavoidable (forced headings, forced transitions, centered text) count as correct reads of the input.
 - Importers in core: .txt and .md (headings become sections) through the classifier; .docx by reading the document XML directly (fflate + fast-xml-parser), with alignment/indent/bold feeding the classifier.
 - CLI reads .docx, .txt and .md now: `spec convert script.docx script.fountain`.
-- Still to come for v0.2: PDF text-layer import, File > Import in the app, and the review pane (see docs/acceptance/v0.2.md).
+- PDF text-layer import (pdfjs-dist): lines rebuilt from text positions, x offsets become indent hints for the classifier, vertical gaps become blank lines. Scanned PDFs without text raise a clear "run OCR first" error instead of importing garbage.
+- File > Import… in the app (Cmd/Ctrl+Shift+I) and drag-and-drop onto the window, for .fountain, .fdx, .docx, .pdf, .txt, .md. Fountain and FDX load directly (their types are explicit); classifier formats open the review pane.
+- Review pane: every line with its detected type and confidence, doubtful lines flagged and sortable to the top, click/shift-click selection, bulk type-setting, and a title page carried through. Committing creates an untitled document; nothing touches disk until the writer saves.
+- Title page extraction on import now also accepts the "Key:" with indented values form.
+- CLI reads .pdf as well: `spec convert script.pdf script.fountain`.
+- Remaining before the v0.2.0 release: owner confirmation of docs/acceptance/v0.2.md, then tag.
 
 ## v0.1.1 discoverability pass (October 12, 2026, after hands-on feedback)
 

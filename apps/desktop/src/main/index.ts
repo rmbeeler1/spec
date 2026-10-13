@@ -58,6 +58,26 @@ function registerIpc(): void {
     return openPath(win, path)
   })
 
+  ipcMain.handle('dialog:import-file', async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return null
+    const result = await dialog.showOpenDialog(win, {
+      properties: ['openFile'],
+      filters: [
+        { name: 'Importable scripts', extensions: ['fountain', 'fdx', 'docx', 'pdf', 'txt', 'md'] }
+      ]
+    })
+    const path = result.filePaths[0]
+    if (result.canceled || !path) return null
+    try {
+      const data = await readFile(path)
+      return { path, data }
+    } catch (err) {
+      dialog.showErrorBox('Could not import file', err instanceof Error ? err.message : String(err))
+      return null
+    }
+  })
+
   ipcMain.handle('file:open-path', async (event, path: unknown) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win || typeof path !== 'string') return null

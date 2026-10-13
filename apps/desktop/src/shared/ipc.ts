@@ -23,6 +23,7 @@ export type MenuCommand =
   | 'file:new-tv-hour'
   | 'file:new-tv-half-hour'
   | 'file:open'
+  | 'file:import'
   | 'file:save'
   | 'file:save-as'
   | 'file:export-pdf'
@@ -42,6 +43,8 @@ export interface SpecApi {
   openFile(): Promise<OpenedFile | null>
   /** Open a specific path (recent files). */
   openPath(path: string): Promise<OpenedFile | null>
+  /** Show an import dialog and read the chosen file as bytes. */
+  importFile(): Promise<{ path: string; data: Uint8Array } | null>
   /** Show a save dialog. Returns the chosen path or null. */
   saveFileAs(defaultName: string, filterName: string, extensions: string[]): Promise<string | null>
   /** Atomic write. Also snapshots the previous content of the file. */

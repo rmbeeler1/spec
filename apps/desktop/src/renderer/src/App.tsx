@@ -39,6 +39,8 @@ import { SnapshotsDialog } from './components/SnapshotsDialog'
 import { ElementToolbar } from './components/ElementToolbar'
 import { ShortcutsDialog } from './components/ShortcutsDialog'
 import { FirstLaunchHint } from './components/FirstLaunchHint'
+import { ReviewPane } from './components/ReviewPane'
+import { routeImport, type PendingImport } from './import/route'
 
 type SaveState = 'saved' | 'editing' | 'unsaved-no-file'
 
@@ -58,6 +60,8 @@ export default function App(): React.JSX.Element {
   const [showTitlePage, setShowTitlePage] = useState(false)
   const [showSnapshots, setShowSnapshots] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [pendingImport, setPendingImport] = useState<PendingImport | null>(null)
+  const [importError, setImportError] = useState<string | null>(null)
   const [showHint, setShowHint] = useState(() => localStorage.getItem('spec:hint-seen') !== '1')
   const modKey = window.spec.platform === 'darwin' ? '⌘' : 'Ctrl+'
 
@@ -171,6 +175,40 @@ export default function App(): React.JSX.Element {
     [currentScript]
   )
 
+  const handleImport = useCallback(
+    async (path: string, data: Uint8Array): Promise<void> => {
+      setImportError(null)
+      try {
+        const routed = await routeImport(path, data)
+        if (routed.kind === 'direct') {
+          loadContent(routed.content, path.toLowerCase().endsWith('.fountain') ? path : null)
+        } else {
+          setPendingImport(routed.pending)
+        }
+      } catch (err) {
+        setImportError(err instanceof Error ? err.message : String(err))
+      }
+    },
+    [loadContent]
+  )
+
+  // Dropping a script file anywhere on the window imports it.
+  useEffect(() => {
+    const onDrop = (e: DragEvent): void => {
+      e.preventDefault()
+      const file = e.dataTransfer?.files[0]
+      if (!file) return
+      void file.arrayBuffer().then((buf) => handleImport(file.name, new Uint8Array(buf)))
+    }
+    const onDragOver = (e: DragEvent): void => e.preventDefault()
+    window.addEventListener('drop', onDrop)
+    window.addEventListener('dragover', onDragOver)
+    return () => {
+      window.removeEventListener('drop', onDrop)
+      window.removeEventListener('dragover', onDragOver)
+    }
+  }, [handleImport])
+
   // Editor change tracking: dirty state, autosave, derived data.
   useEffect(() => {
     if (!editor) return
@@ -214,6 +252,9 @@ export default function App(): React.JSX.Element {
       switch (command) {
         case 'file:open':
           void window.spec.openFile().then((f) => f && loadContent(f.content, f.path))
+          break
+        case 'file:import':
+          void window.spec.importFile().then((f) => f && handleImport(f.path, f.data))
           break
         case 'file:save':
           void save()
@@ -328,6 +369,26 @@ export default function App(): React.JSX.Element {
           onRestore={(content) => loadContent(content, filePath)}
           onClose={() => setShowSnapshots(false)}
         />
+      )}
+      {pendingImport && (
+        <ReviewPane
+          fileName={pendingImport.fileName}
+          lines={pendingImport.lines}
+          titlePage={pendingImport.titlePage}
+          onCommit={(script) => {
+            setPendingImport(null)
+            // Imported scripts start as untitled: nothing touches disk until
+            // the writer saves.
+            loadContent(serializeFountain(script), null)
+          }}
+          onCancel={() => setPendingImport(null)}
+        />
+      )}
+      {importError && (
+        <div className="import-error" role="alert">
+          <span>{importError}</span>
+          <button onClick={() => setImportError(null)}>Dismiss</button>
+        </div>
       )}
       {showShortcuts && <ShortcutsDialog modKey={modKey} onClose={() => setShowShortcuts(false)} />}
       {showHint && !showShortcuts && (

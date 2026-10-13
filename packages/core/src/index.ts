@@ -26,6 +26,7 @@ export {
 export { buildScript, extractTitlePage } from './import/build'
 export { importPlainText, importMarkdown, type ImportResult } from './import/text'
 export { importDocx } from './import/docx'
+export { importPdf } from './import/pdf'
 export { readFdx, type ReadFdxOptions } from './fdx/read'
 export { writeFdx } from './fdx/write'
 export { exportPdf, type PdfExportOptions, type PdfFonts } from './pdf/exportPdf'

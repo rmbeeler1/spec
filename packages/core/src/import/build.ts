@@ -55,12 +55,14 @@ export function extractTitlePage(lines: string[]): {
 
   const keyRe = /^([A-Za-z][A-Za-z0-9 _-]{0,24}):(.*)$/
 
-  // Only treat it as a title page when the very first content line is a
-  // key with a value (same guard as the Fountain parser: a lone "CUT TO:"
-  // is a transition, not a key).
+  // Only treat it as a title page when the very first content line is a key
+  // with an inline value, or a key whose values follow on indented lines
+  // (same guard as the Fountain parser: a lone "CUT TO:" is a transition,
+  // not a key).
   while (i < lines.length && lines[i]!.trim() === '') i++
   const first = lines[i]?.match(keyRe)
-  if (!first || first[2]!.trim() === '') return { titlePage: [], rest: lines }
+  const continuation = lines[i + 1] !== undefined && /^[\t ]+\S/.test(lines[i + 1]!)
+  if (!first || (first[2]!.trim() === '' && !continuation)) return { titlePage: [], rest: lines }
 
   while (i < lines.length) {
     const line = lines[i]!

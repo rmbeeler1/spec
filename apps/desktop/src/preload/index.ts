@@ -5,6 +5,7 @@ const api: SpecApi = {
   platform: process.platform,
   openFile: () => ipcRenderer.invoke('dialog:open-file'),
   openPath: (path) => ipcRenderer.invoke('file:open-path', path),
+  importFile: () => ipcRenderer.invoke('dialog:import-file'),
   saveFileAs: (defaultName, filterName, extensions) =>
     ipcRenderer.invoke('dialog:save-file-as', defaultName, filterName, extensions),
   writeFile: (path, content) => ipcRenderer.invoke('file:write', path, content),

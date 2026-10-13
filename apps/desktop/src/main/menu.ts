@@ -42,6 +42,11 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
         },
         { type: 'separator' },
         { label: 'Open…', accelerator: 'CmdOrCtrl+O', click: () => send('file:open') },
+        {
+          label: 'Import…',
+          accelerator: 'CmdOrCtrl+Shift+I',
+          click: () => send('file:import')
+        },
         { label: 'Open Recent', submenu: recentItems },
         { type: 'separator' },
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => send('file:save') },

@@ -4,6 +4,7 @@ import {
   exportPdf,
   importDocx,
   importMarkdown,
+  importPdf,
   importPlainText,
   parseFountain,
   readFdx,
@@ -17,7 +18,7 @@ export interface ConvertDeps {
   fonts: PdfFonts
 }
 
-const READABLE = ['.fountain', '.txt', '.md', '.docx', '.fdx']
+const READABLE = ['.fountain', '.txt', '.md', '.docx', '.pdf', '.fdx']
 const WRITABLE = ['.fountain', '.fdx', '.pdf']
 
 /** Convert between formats, routed by file extension. */
@@ -34,6 +35,8 @@ export async function convertFile(input: string, output: string, deps: ConvertDe
   let script: Script
   if (from === '.docx') {
     script = importDocx(await readFile(input)).script
+  } else if (from === '.pdf') {
+    script = (await importPdf(await readFile(input))).script
   } else {
     const source = await readFile(input, 'utf8')
     if (from === '.fdx') script = readFdx(source)

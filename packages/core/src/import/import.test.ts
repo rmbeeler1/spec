@@ -158,6 +158,22 @@ describe('extractTitlePage', () => {
     expect(rest[1]).toBe('INT. A - DAY')
   })
 
+  it('accepts a key whose values arrive on indented lines', () => {
+    const { titlePage, rest } = extractTitlePage([
+      'Title:',
+      '\tBRICK & STEEL',
+      '\tFULL RETIRED',
+      'Credit: Written by',
+      '',
+      'EXT. PATIO - DAY'
+    ])
+    expect(titlePage).toEqual([
+      { key: 'Title', values: ['BRICK & STEEL', 'FULL RETIRED'] },
+      { key: 'Credit', values: ['Written by'] }
+    ])
+    expect(rest[1]).toBe('EXT. PATIO - DAY')
+  })
+
   it('does not eat a leading transition', () => {
     const { titlePage, rest } = extractTitlePage(['CUT TO:', '', 'INT. A - DAY'])
     expect(titlePage).toEqual([])
