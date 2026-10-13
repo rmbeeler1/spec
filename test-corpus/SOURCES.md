@@ -27,6 +27,12 @@ Written for this project and released to the public domain. Designed so paginati
 | dialogue-break-stress.fountain | Three 60-sentence numbered speeches that force (MORE)/(CONT'D) page breaks |
 | orphan-stress.fountain | 30 blocks of growing action padding that sweep a scene heading and character cue across every position near a page bottom |
 
+## md/ (messy-source fixtures)
+
+| File | Source | Notes |
+|---|---|---|
+| EL_AHOGADO_Screenplay.md | Added by the owner (Oct 12, 2026), original material | A real-world messy Markdown screenplay: bold `**scene headings**` and `**character cues**`, italic `*(parentheticals)*`, `---` rules between blocks, `##`/`###` act and scene headings, and a front matter block (title, "Written by", "Based on…") with no Fountain `Key:` syntax. The md importer's accuracy fixture: 60 scene headings, ~800 cues, 64 act/scene sections (see `packages/core/src/import/markdown.test.ts`). |
+
 ## fdx/
 
 | File | Source | Notes |

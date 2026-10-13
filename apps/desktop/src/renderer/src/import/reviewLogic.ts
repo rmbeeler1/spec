@@ -33,6 +33,44 @@ export function selectDoubtful(lines: ClassifiedLine[]): Set<number> {
   return out
 }
 
+/**
+ * One-line summary with a sanity check. A screenplay import with no scene
+ * headings, or cues but no dialogue, almost always means the source lost its
+ * structure; say so plainly instead of letting a broken import look fine.
+ */
+export function importSummary(lines: ClassifiedLine[]): { text: string; suspicious: boolean } {
+  const count = (type: string): number => lines.filter((l) => l.type === type).length
+  const scenes = count('scene_heading')
+  const cues = count('character')
+  const dialogue = count('dialogue')
+  const doubtful = doubtfulCount(lines)
+
+  const found = `Found ${scenes} scene ${scenes === 1 ? 'heading' : 'headings'}, ${cues} character ${cues === 1 ? 'cue' : 'cues'}, ${dialogue} dialogue ${dialogue === 1 ? 'line' : 'lines'}.`
+
+  if (scenes === 0 && cues > 0) {
+    return {
+      text: `${found} No scene headings in a script with dialogue is unusual. Check the flagged lines below.`,
+      suspicious: true
+    }
+  }
+  if (cues === 0 && scenes > 0) {
+    return {
+      text: `${found} Scenes but no dialogue is unusual for a screenplay. Check the flagged lines below.`,
+      suspicious: true
+    }
+  }
+  if (scenes === 0 && cues === 0) {
+    return {
+      text: `${found} This does not look like a screenplay; everything imported as action.`,
+      suspicious: true
+    }
+  }
+  return {
+    text: `${found} ${doubtful === 0 ? 'Nothing flagged.' : `${doubtful} flagged for a look.`}`,
+    suspicious: false
+  }
+}
+
 /** Shift-click selects the whole range between two row indices. */
 export function rangeBetween(indices: number[], a: number, b: number): Set<number> {
   const posA = indices.indexOf(a)

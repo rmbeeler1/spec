@@ -3,7 +3,7 @@ import { buildScript, type ClassifiedLine, type ClassifiedType, type Script, typ
 import {
   DOUBT_THRESHOLD,
   applyTypeToSelection,
-  doubtfulCount,
+  importSummary,
   rangeBetween,
   selectDoubtful,
   visibleIndices
@@ -46,12 +46,12 @@ interface Props {
 export function ReviewPane({ fileName, lines: initial, titlePage, onCommit, onCancel }: Props): React.JSX.Element {
   const [lines, setLines] = useState(initial)
   const [selected, setSelected] = useState<Set<number>>(new Set())
-  const [doubtfulFirst, setDoubtfulFirst] = useState(false)
+  const [doubtfulFirst, setDoubtfulFirst] = useState(true)
   const [lastClicked, setLastClicked] = useState<number | null>(null)
   const [bulkType, setBulkType] = useState<ClassifiedType>('action')
 
   const indices = useMemo(() => visibleIndices(lines, doubtfulFirst), [lines, doubtfulFirst])
-  const doubtful = useMemo(() => doubtfulCount(lines), [lines])
+  const summary = useMemo(() => importSummary(lines), [lines])
 
   const onRowClick = (index: number, shiftKey: boolean): void => {
     setSelected((prev) => {
@@ -80,13 +80,17 @@ export function ReviewPane({ fileName, lines: initial, titlePage, onCommit, onCa
       <header className="review-header">
         <div>
           <h2>Review import: {fileName}</h2>
+          <p className={`summary${summary.suspicious ? ' suspicious' : ''}`}>{summary.text}</p>
           <p className="hint">
-            {indices.length} lines · {doubtful} worth a look (confidence under{' '}
-            {Math.round(DOUBT_THRESHOLD * 100)}%). Click rows to select, shift-click for a range,
-            then set their type in one go.
+            What to do here: skim the flagged lines at the top. If a line has the wrong type, click
+            it (shift-click for a range), pick the right type, and press Set type. If everything
+            looks right, just press Import — you can still edit anything afterwards.
           </p>
         </div>
         <div className="review-controls">
+          <button className="primary review-cta" onClick={() => onCommit(buildScript(lines, titlePage))}>
+            Looks right — import {indices.length} lines
+          </button>
           <label className="check">
             <input
               type="checkbox"

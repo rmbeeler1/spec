@@ -34,7 +34,9 @@ export function buildScript(
       i = j
       continue
     }
-    elements.push({ id: nextId(), type: line.type, text: line.text })
+    const el: ScriptElement = { id: nextId(), type: line.type, text: line.text }
+    if (line.type === 'section') el.depth = line.depth ?? 1
+    elements.push(el)
     i++
   }
 

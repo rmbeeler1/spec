@@ -528,6 +528,24 @@ body {
   font-size: 0.78rem;
   color: var(--muted);
   margin-top: 4px;
+  max-width: 60ch;
+}
+
+.review-header .summary {
+  font-size: 0.85rem;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.review-header .summary.suspicious {
+  color: var(--accent);
+}
+
+.review-controls .review-cta {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
 }
 
 .review-controls {

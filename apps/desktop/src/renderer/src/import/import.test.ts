@@ -5,6 +5,7 @@ import type { ClassifiedLine } from '@spec/core'
 import {
   applyTypeToSelection,
   doubtfulCount,
+  importSummary,
   rangeBetween,
   selectDoubtful,
   visibleIndices
@@ -37,6 +38,29 @@ describe('review pane logic', () => {
     expect(updated[2]).toEqual({ text: 'MAYBE A CUE', type: 'action', confidence: 1 })
     expect(updated[4]!.confidence).toBe(1)
     expect(updated[0]).toEqual(lines[0])
+  })
+
+  it('summarizes a healthy import without alarm', () => {
+    const s = importSummary(lines)
+    expect(s.suspicious).toBe(false)
+    expect(s.text).toContain('1 scene heading')
+  })
+
+  it('flags an import with cues but no scene headings as unusual', () => {
+    const noScenes: ClassifiedLine[] = [
+      { text: 'MARGO', type: 'character', confidence: 0.9 },
+      { text: 'Hi.', type: 'dialogue', confidence: 0.9 }
+    ]
+    const s = importSummary(noScenes)
+    expect(s.suspicious).toBe(true)
+    expect(s.text).toMatch(/unusual/i)
+  })
+
+  it('flags a structureless import plainly', () => {
+    const blob: ClassifiedLine[] = [{ text: 'just prose', type: 'action', confidence: 0.9 }]
+    const s = importSummary(blob)
+    expect(s.suspicious).toBe(true)
+    expect(s.text).toMatch(/does not look like a screenplay/i)
   })
 
   it('selects doubtful lines and shift-click ranges', () => {

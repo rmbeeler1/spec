@@ -23,6 +23,8 @@ export interface ClassifiedLine {
   text: string
   type: ClassifiedType
   confidence: number // 0..1; below ~0.7 means "worth a human look"
+  /** section lines only: heading depth. */
+  depth?: number
 }
 
 const SCENE_RE = /^(INT\.?\/EXT|INT|EXT|EST|I\/E)[.\s]/i
@@ -92,6 +94,7 @@ export function classifyLines(lines: ImportLine[]): ClassifiedLine[] {
       const next = textAt(i + 1)
       if (next !== '' && !isCaps(next)) confidence += 0.1
       if (line.centered === true) confidence += 0.1
+      if (line.bold === true) confidence += 0.1 // sources that bold their cues
       if (line.indent !== undefined && line.indent > 0.2 && line.indent < 0.65) confidence += 0.1
       out.push({ text: t, type: 'character', confidence: Math.min(1, confidence) })
       continue
