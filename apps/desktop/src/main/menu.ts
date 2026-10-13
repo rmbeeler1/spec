@@ -147,7 +147,9 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
         {
           label: 'Spec on GitHub',
           click: () => void shell.openExternal('https://github.com/rmbeeler1/spec')
-        }
+        },
+        { type: 'separator' },
+        { label: 'About Spec', click: () => send('help:about') }
       ]
     }
   ]

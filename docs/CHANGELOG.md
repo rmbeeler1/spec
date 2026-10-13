@@ -2,6 +2,11 @@
 
 All notable changes to Spec are recorded here.
 
+## v0.3.2 branding (October 12, 2026)
+
+- Spec has a face: the owner's icon art ships as the app icon on every platform (macOS .icns, Windows .ico, Linux PNG set), in the installer, Finder, Dock and taskbar, and on the window in dev. The source art came on a fake-transparency checkerboard (a JPEG cannot hold real transparency), so `apps/desktop/scripts/generate-icons.py` reconstructs the checker pattern mathematically, un-composites the art from it (soft shadows become real alpha), and sets it on a dark rounded tile matching the logo. Generated files are checked in; CI never runs the script.
+- The logo appears in a new Help > About Spec dialog (logo, version, license, repo link) and on the first-launch welcome card.
+
 ## v0.3.1 import and planning-safety fixes (October 12, 2026)
 
 First application of the corpus agreement: the owner's real import (test-corpus/pdf/Untitled Zombie Shortfilm.pdf) exposed misreads, each now fixed and gated by a test against that file.

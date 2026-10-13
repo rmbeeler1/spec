@@ -3,6 +3,7 @@ import type { MenuCommand, OpenedFile, SpecApi } from '../shared/ipc'
 
 const api: SpecApi = {
   platform: process.platform,
+  getAppVersion: () => ipcRenderer.invoke('app:version'),
   openFile: () => ipcRenderer.invoke('dialog:open-file'),
   openPath: (path) => ipcRenderer.invoke('file:open-path', path),
   importFile: () => ipcRenderer.invoke('dialog:import-file'),

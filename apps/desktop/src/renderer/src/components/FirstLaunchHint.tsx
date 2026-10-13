@@ -1,3 +1,5 @@
+import logo from '@branding/spec-logo-web.png'
+
 interface Props {
   modKey: string
   onShowShortcuts(): void
@@ -7,6 +9,7 @@ interface Props {
 export function FirstLaunchHint({ modKey, onShowShortcuts, onDismiss }: Props): React.JSX.Element {
   return (
     <div className="first-hint" role="note">
+      <img className="hint-logo" src={logo} alt="Spec: screenwriting software" />
       <strong>Welcome to Spec.</strong>
       <p>
         Just start typing. A line beginning with <code>int.</code> or <code>ext.</code> becomes a

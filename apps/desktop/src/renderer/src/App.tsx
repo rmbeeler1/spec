@@ -92,6 +92,7 @@ import { CharacterNavigator } from './components/CharacterNavigator'
 import { RenameDialog } from './components/RenameDialog'
 import { OrphanPrompt } from './components/OrphanPrompt'
 import { OrphanMetaBanner } from './components/OrphanMetaBanner'
+import { AboutDialog } from './components/AboutDialog'
 import { routeImport, type PendingImport } from './import/route'
 
 type SaveState = 'saved' | 'editing' | 'unsaved-no-file'
@@ -129,6 +130,7 @@ export default function App(): React.JSX.Element {
   const [showTitlePage, setShowTitlePage] = useState(false)
   const [showSnapshots, setShowSnapshots] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [showAbout, setShowAbout] = useState(false)
   const [showRename, setShowRename] = useState(false)
   const [renameError, setRenameError] = useState<string | null>(null)
   const [orphan, setOrphan] = useState<OrphanSidecarInfo | null>(null)
@@ -661,6 +663,9 @@ export default function App(): React.JSX.Element {
         case 'help:welcome':
           setShowHint(true)
           break
+        case 'help:about':
+          setShowAbout(true)
+          break
       }
     })
     window.spec.onFileOpened((f) => loadContent(f.content, f.path))
@@ -924,6 +929,7 @@ export default function App(): React.JSX.Element {
         </div>
       )}
       {showShortcuts && <ShortcutsDialog modKey={modKey} onClose={() => setShowShortcuts(false)} />}
+      {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
       {showHint && !showShortcuts && (
         <FirstLaunchHint
           modKey={modKey}

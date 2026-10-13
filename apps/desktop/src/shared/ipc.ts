@@ -45,6 +45,7 @@ export type MenuCommand =
   | 'view:outline'
   | 'help:shortcuts'
   | 'help:welcome'
+  | 'help:about'
 
 /** A planning sidecar in the script's folder whose own script file is gone. */
 export interface OrphanSidecarInfo {
@@ -58,6 +59,8 @@ export type RenameOutcome = { newPath: string } | { error: string }
 
 export interface SpecApi {
   platform: string
+  /** App version from package.json, for the About dialog. */
+  getAppVersion(): Promise<string>
   /** Show an open dialog and read the chosen file. */
   openFile(): Promise<OpenedFile | null>
   /** Open a specific path (recent files). */

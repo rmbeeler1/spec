@@ -3,6 +3,7 @@ import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 
 const fontsDir = resolve(__dirname, '../../assets/fonts')
+const brandingDir = resolve(__dirname, '../../assets/branding')
 
 export default defineConfig({
   main: {
@@ -15,7 +16,8 @@ export default defineConfig({
     plugins: [react()],
     resolve: {
       alias: {
-        '@fonts': fontsDir
+        '@fonts': fontsDir,
+        '@branding': brandingDir
       }
     },
     server: {

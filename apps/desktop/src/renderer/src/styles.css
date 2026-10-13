@@ -1505,6 +1505,43 @@ body {
   color: #fff;
 }
 
+/* ---------- About dialog ---------- */
+
+.about-dialog {
+  width: 480px;
+  text-align: center;
+}
+
+.about-logo {
+  width: 100%;
+  border-radius: 8px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.about-version {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.about-blurb {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.about-blurb a {
+  color: var(--accent);
+}
+
+.hint-logo {
+  width: 100%;
+  border-radius: 6px;
+  display: block;
+  margin-bottom: 10px;
+}
+
 /* ---------- Shortcuts dialog ---------- */
 
 .dialog-wide {

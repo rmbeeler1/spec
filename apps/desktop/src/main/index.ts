@@ -137,6 +137,8 @@ function registerIpc(): void {
 
   ipcMain.handle('recents:get', () => getRecents(app.getPath('userData')))
 
+  ipcMain.handle('app:version', () => app.getVersion())
+
   ipcMain.handle('planning:read', (_event, path: unknown) =>
     typeof path === 'string' ? readTextIfExists(path) : null
   )
@@ -197,6 +199,12 @@ function registerIpc(): void {
   })
 }
 
+// In a packaged app the exe/bundle carries the icon; dev and Linux windows
+// take it from the generated set.
+const windowIcon = app.isPackaged
+  ? undefined
+  : join(__dirname, '../../build/icons/512x512.png')
+
 function createWindow(): void {
   const win = new BrowserWindow({
     width: 1280,
@@ -204,6 +212,7 @@ function createWindow(): void {
     minWidth: 760,
     minHeight: 480,
     show: false,
+    ...(windowIcon ? { icon: windowIcon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -237,6 +246,15 @@ function createWindow(): void {
 }
 
 app.whenReady().then(async () => {
+  app.setAboutPanelOptions({
+    applicationName: 'Spec',
+    applicationVersion: app.getVersion(),
+    copyright: 'MIT licensed, free and open source'
+  })
+  // Dev runs are not packaged, so give the Dock the real icon by hand
+  if (process.platform === 'darwin' && !app.isPackaged && windowIcon) {
+    app.dock?.setIcon(windowIcon)
+  }
   registerIpc()
   await buildMenu(menuDeps)
   createWindow()
