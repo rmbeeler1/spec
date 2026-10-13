@@ -1,6 +1,6 @@
 {
   "name": "@spec/core",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "description": "Spec core library: Fountain parser, document model, pagination, import/export. Pure TypeScript, no Electron or React.",
   "license": "MIT",

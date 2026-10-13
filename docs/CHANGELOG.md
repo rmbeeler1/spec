@@ -2,6 +2,10 @@
 
 All notable changes to Spec are recorded here.
 
+## v0.4.2 macOS installer fix (October 13, 2026)
+
+- The macOS app is now ad-hoc code signed. Unsigned Apple Silicon apps downloaded through a browser fail with a misleading "Spec is damaged and can't be opened" dialog; ad-hoc signed apps get the standard unidentified-developer dialog with the right-click > Open flow. Hardened runtime is off (it only matters for notarization and would block ad-hoc library loading).
+
 ## v0.4.1 pre-beta end cap (October 13, 2026)
 
 - Rename a character everywhere: in the Characters sidebar tab, "Rename everywhere..." changes the name in every cue (keeping (V.O.), (CONT'D) and dual carets) and every whole-word mention in action and dialogue, preserving each mention's casing; one undo reverses it all. Scene headings stay untouched (locations are not people).

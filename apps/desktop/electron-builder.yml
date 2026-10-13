@@ -12,12 +12,19 @@ npmRebuild: false
 mac:
   icon: build/icon.icns
   category: public.app-category.productivity
+  # Ad-hoc signature ("-"): Apple Silicon refuses fully unsigned apps with a
+  # misleading "damaged" dialog once a browser download adds the quarantine
+  # flag. Ad-hoc signed apps get the normal unidentified-developer dialog and
+  # the right-click Open flow instead. No certificate involved.
   target:
     - target: dmg
       arch: [arm64, x64]
     - target: zip
       arch: [arm64, x64]
-  identity: null
+  identity: "-"
+  # Hardened runtime only matters for notarization; with ad-hoc signing it
+  # would block library loading at launch.
+  hardenedRuntime: false
 win:
   icon: build/icon.ico
   target:

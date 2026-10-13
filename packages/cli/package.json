@@ -1,6 +1,6 @@
 {
   "name": "@spec/cli",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "description": "Spec command line converter: Fountain to PDF/FDX and FDX to Fountain",
   "license": "MIT",
