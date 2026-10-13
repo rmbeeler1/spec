@@ -49,6 +49,7 @@ import {
   type StructureInfo
 } from './editor/scenes'
 import { cutSelectionToStash, insertFountainAfterCaret } from './editor/stash'
+import { autoNumberNewScenes, renumberScenes } from './editor/numbering'
 import { findMatches, replaceAll, replaceSelection, selectNextMatch } from './editor/search'
 import { pdfFonts } from './fonts'
 import {
@@ -183,6 +184,7 @@ export default function App(): React.JSX.Element {
   const refreshDerived = useCallback(
     (ed: Editor) => {
       assignMissingSceneIds(ed)
+      if (stateRef.current.planning.numberingLocked) autoNumberNewScenes(ed)
       setScenes(listScenes(ed))
       setStructure(listStructure(ed))
       if (paginateTimer.current) clearTimeout(paginateTimer.current)
@@ -665,6 +667,19 @@ export default function App(): React.JSX.Element {
           break
         case 'help:about':
           setShowAbout(true)
+          break
+        case 'production:renumber': {
+          const ed = stateRef.current.editor
+          if (ed && renumberScenes(ed)) refreshDerived(ed)
+          break
+        }
+        case 'production:toggle-number-lock':
+          setPlanning((p) => {
+            const next = { ...p }
+            if (next.numberingLocked) delete next.numberingLocked
+            else next.numberingLocked = true
+            return next
+          })
           break
       }
     })

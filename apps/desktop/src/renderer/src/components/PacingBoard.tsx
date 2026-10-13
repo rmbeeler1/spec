@@ -48,7 +48,7 @@ export function PacingBoard({
                       />
                     )}
                     <div className="pc-heading">
-                      <span className="card-num">{card.index + 1}</span>
+                      <span className="card-num">{card.sceneNumber ?? card.index + 1}</span>
                       {card.heading || '(empty heading)'}
                     </div>
                     <div className="pc-facts">

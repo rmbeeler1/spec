@@ -61,6 +61,8 @@ export interface PlanningData {
   beatLinks: BeatLink[]
   stash: StashEntry[]
   storylines: Storyline[]
+  /** Production: locked numbering gives inserted scenes A-numbers (12A). */
+  numberingLocked?: boolean
 }
 
 export function emptyPlanning(): PlanningData {
@@ -74,7 +76,8 @@ export function isPlanningEmpty(data: PlanningData): boolean {
     data.beats.length === 0 &&
     data.beatLinks.length === 0 &&
     data.stash.length === 0 &&
-    data.storylines.length === 0
+    data.storylines.length === 0 &&
+    data.numberingLocked !== true
   )
 }
 
@@ -181,7 +184,9 @@ export function parsePlanning(json: string): { data: PlanningData; hadErrors: bo
     }
   }
 
-  return { data: { version: 1, scenes, beats, beatLinks, stash, storylines }, hadErrors }
+  const data: PlanningData = { version: 1, scenes, beats, beatLinks, stash, storylines }
+  if (o['numberingLocked'] === true) data.numberingLocked = true
+  return { data, hadErrors }
 }
 
 // ---------------------------------------------------------------------------

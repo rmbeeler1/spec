@@ -81,6 +81,22 @@ function drawLine(
   const y = baselineY(lineIndex)
   const startX = LEFT_MARGIN + line.indent * CHAR_WIDTH
 
+  // Scene numbers print in both margins, industry style
+  if (line.sceneNumber) {
+    page.drawText(line.sceneNumber, {
+      x: LEFT_MARGIN - (line.sceneNumber.length + 2) * CHAR_WIDTH,
+      y,
+      size: FONT_SIZE,
+      font: fonts.bold
+    })
+    page.drawText(line.sceneNumber, {
+      x: PAGE_WIDTH - RIGHT_MARGIN + CHAR_WIDTH,
+      y,
+      size: FONT_SIZE,
+      font: fonts.bold
+    })
+  }
+
   if (line.spans.length === 0) {
     page.drawText(line.text, { x: startX, y, size: FONT_SIZE, font: fonts.regular })
     return

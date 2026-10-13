@@ -46,6 +46,7 @@ export function OutlineView({ structure, cards, onJump }: Props): React.JSX.Elem
                   style={{ background: colorValue(card.color) ?? undefined }}
                 />
               )}
+              {card?.sceneNumber && <span className="card-num">{card.sceneNumber}</span>}
               <span className="outline-text">{item.text || '(untitled)'}</span>
               {card && (
                 <span className="outline-meta">

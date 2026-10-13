@@ -43,6 +43,8 @@ export type MenuCommand =
   | 'view:pacing'
   | 'view:beatboard'
   | 'view:outline'
+  | 'production:renumber'
+  | 'production:toggle-number-lock'
   | 'help:shortcuts'
   | 'help:welcome'
   | 'help:about'

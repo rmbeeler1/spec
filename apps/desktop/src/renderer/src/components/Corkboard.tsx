@@ -80,7 +80,7 @@ export function Corkboard(props: Props): React.JSX.Element {
               <div className="card-color" style={{ background: colorValue(card.color) ?? undefined }} />
             )}
             <div className="card-top">
-              <span className="card-num">{card.index + 1}</span>
+              <span className="card-num">{card.sceneNumber ?? card.index + 1}</span>
               <span className="card-heading">{card.heading || '(empty heading)'}</span>
               <button
                 className="card-menu"

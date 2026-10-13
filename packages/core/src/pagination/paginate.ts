@@ -11,6 +11,8 @@ export interface RenderLine {
   text: string // plain text, emphasis markers and notes stripped
   indent: number // characters from the left margin
   spans: StyleSpan[]
+  /** Scene headings only: the scene number, printed in both margins. */
+  sceneNumber?: string
 }
 
 export interface RenderPage {
@@ -134,6 +136,9 @@ function renderElement(el: ScriptElement, config: PaginationConfig): RenderLine[
   }
   if (lines.length === 0) {
     lines.push({ elementId: el.id, type: el.type, text: '', indent: baseIndent, spans: [] })
+  }
+  if (el.type === 'scene_heading' && el.sceneNumber) {
+    lines[0]!.sceneNumber = el.sceneNumber
   }
   return lines
 }

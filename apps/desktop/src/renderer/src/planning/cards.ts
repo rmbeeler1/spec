@@ -16,6 +16,8 @@ export interface SceneCard {
   id: string
   /** 0-based position in script order; reorders use this. */
   index: number
+  /** Production scene number (#12A#) when the script has them. */
+  sceneNumber: string | null
   heading: string
   body: string
   /** True when body is the first action line standing in for a synopsis. */
@@ -46,6 +48,7 @@ export function buildSceneCards(script: Script, planning: PlanningData): SceneCa
     cards.push({
       id: el.id,
       index: cards.length,
+      sceneNumber: el.sceneNumber ?? null,
       heading: el.text,
       body: body.text,
       bodyIsFallback: body.isFallback,

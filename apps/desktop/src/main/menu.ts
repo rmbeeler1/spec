@@ -133,6 +133,16 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
         ...(app.isPackaged ? [] : [{ type: 'separator' as const }, { role: 'toggleDevTools' as const }])
       ]
     },
+    {
+      label: 'Production',
+      submenu: [
+        { label: 'Number Scenes', click: () => send('production:renumber') },
+        {
+          label: 'Lock Scene Numbers',
+          click: () => send('production:toggle-number-lock')
+        }
+      ]
+    },
     { role: 'windowMenu' },
     {
       role: 'help',

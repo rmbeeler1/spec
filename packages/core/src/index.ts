@@ -61,6 +61,12 @@ export {
   type ScenePages
 } from './planning/stats'
 export {
+  nextSceneNumber,
+  parseSceneNumber,
+  sequentialSceneNumbers,
+  type SceneNumberParts
+} from './planning/numbering'
+export {
   parseStashFile,
   serializeStashFile,
   stashChunkFountain,
