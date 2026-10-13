@@ -2,6 +2,20 @@
 
 All notable changes to Spec are recorded here.
 
+## v0.3.0 "Plan" (October 12, 2026)
+
+- New views, switchable from a tab bar above the page and the View menu (Cmd/Ctrl+Alt+1 to 5): Write, Corkboard, Pacing, Beat Board, Outline.
+- Planning sidecar: cards, colors, tags, storylines, tension and beat boards live in `MyScript.spec.json` next to the script, keyed by stable element IDs with heading snapshots so everything re-attaches after a reload. Written atomically, removed when empty, and a corrupt sidecar never blocks the script from opening. Script text never goes in it.
+- Corkboard: one index card per scene with its synopsis as the body; scenes without a synopsis show their first action line, greyed. Click the body to edit the synopsis (writes a real `=` line into the Fountain). Drag a card onto another to reorder the actual scenes; Cmd/Ctrl+Z undoes it from any view. Double-click opens the scene in the editor. Color, tags and storylines per scene.
+- Pacing storyboard: the same scenes left to right in act lanes split by `#` sections. Each card shows INT/EXT, time of day, page length in eighths from the real paginator, runtime at a page a minute, and a 1 to 5 tension setter that defaults to unset. The strip above draws the tension curve across the whole script; unset scenes are gaps in the line, never zeros.
+- Beat Board: freeform planning cards (title, notes, color, tags) you drag around a large canvas, with flow lines between them (click a line, then its x, to remove it). Planning-only; nothing on the board touches the script.
+- Outline: acts, sequences and scenes in three lanes with page lengths and start pages; click anything to jump there in the editor.
+- Stash: select lines and send them to the stash (button, or Cmd/Ctrl+Alt+X) instead of deleting. Cut material lives in `MyScript.stash.fountain`, plain Fountain with marker notes, and restores at the cursor. Cmd/Ctrl+Z after a stash move reverses both sides: the text returns and the entry leaves the pane, no duplicates; redo re-stashes it.
+- Characters tab in the sidebar: cue and scene counts per character ((V.O.), (CONT'D) and dual-dialogue carets merged), their scene list for jumping, and a filter that dims every scene they are not in.
+- File > Rename renames the script, sidecar and stash together (all-or-nothing), and recents follow. Opening a script with no sidecar next to an orphaned one (its script gone, likely renamed outside the app) prompts to attach it.
+- Typing `# Act One` or `= synopsis` on a line now creates a real section or synopsis on Enter (marker stripped), and doing so while structure is hidden auto-shows structure instead of letting the line vanish (fixes the v0.2 polish quirk).
+- Scene list rows show their planning color as a dot.
+
 ## Unreleased: pre-v0.3 polish (October 12, 2026, owner feedback after v0.2)
 
 - Title page now renders as page zero above the script, laid out from the same blocks the PDF exporter draws (shared `titlePageBlocks` in core, so preview and export cannot drift). Click it to edit. With no title page yet, a slim "+ Add a title page" placeholder sits above page one. Also reachable from a new Title Page toolbar button and the existing File > Title Page menu item. Hidden in focus mode.

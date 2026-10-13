@@ -76,6 +76,7 @@ body {
   flex: 1;
   min-width: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 12px;
 }
 
@@ -587,11 +588,10 @@ body {
   padding: 10px 16px 0;
   border-bottom: 1px solid var(--chrome-border);
   background: var(--chrome-bg);
+  overflow-x: auto;
 }
 
 .tension-svg {
-  width: 100%;
-  height: 96px;
   display: block;
 }
 

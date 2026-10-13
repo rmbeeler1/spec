@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { Storyline } from '@spec/core'
 import { colorValue } from '../planning/colors'
 import { formatEighths, type SceneCard } from '../planning/cards'
@@ -23,7 +23,9 @@ interface Props {
  */
 export function Corkboard(props: Props): React.JSX.Element {
   const { cards, storylines } = props
-  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  // A ref, not state: drop must read the value synchronously even when the
+  // drag events arrive faster than React flushes renders.
+  const dragIndex = useRef<number | null>(null)
   const [dropIndex, setDropIndex] = useState<number | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
@@ -47,10 +49,10 @@ export function Corkboard(props: Props): React.JSX.Element {
         {cards.map((card) => (
           <div
             key={card.id}
-            className={`scene-card${dropIndex === card.index && dragIndex !== card.index ? ' drop-target' : ''}`}
+            className={`scene-card${dropIndex === card.index && dragIndex.current !== card.index ? ' drop-target' : ''}`}
             draggable={editingId !== card.id}
             onDragStart={(e) => {
-              setDragIndex(card.index)
+              dragIndex.current = card.index
               e.dataTransfer.effectAllowed = 'move'
             }}
             onDragOver={(e) => {
@@ -60,14 +62,15 @@ export function Corkboard(props: Props): React.JSX.Element {
             onDragLeave={() => setDropIndex((d) => (d === card.index ? null : d))}
             onDrop={(e) => {
               e.preventDefault()
-              if (dragIndex !== null && dragIndex !== card.index) {
-                props.onReorder(dragIndex, card.index)
+              const from = dragIndex.current
+              if (from !== null && from !== card.index) {
+                props.onReorder(from, card.index)
               }
-              setDragIndex(null)
+              dragIndex.current = null
               setDropIndex(null)
             }}
             onDragEnd={() => {
-              setDragIndex(null)
+              dragIndex.current = null
               setDropIndex(null)
             }}
             onDoubleClick={() => props.onOpenScene(card.id)}

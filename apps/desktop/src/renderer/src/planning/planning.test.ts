@@ -176,6 +176,13 @@ describe('detectStructure (typed # and = lines)', () => {
       type: 'synopsis',
       text: 'She leaves.'
     })
+    // Enter after dialogue flows into a character element; a typed # line
+    // there is still a section, never a cue
+    expect(detectStructure('# Act Three', 'character')).toEqual({
+      type: 'section',
+      depth: 1,
+      text: 'Act Three'
+    })
   })
 
   it('leaves everything else alone', () => {

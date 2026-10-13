@@ -60,14 +60,23 @@ export function detectTypeOnEnter(text: string, current: ElementType): ElementTy
 /**
  * Structure markers typed by hand: "# Act One" becomes a section (depth from
  * the number of #s), "= She leaves." a synopsis. The marker is stripped from
- * the stored text, exactly as parsing a Fountain file would. Only plain
- * action lines convert, so chosen types are never overridden.
+ * the stored text, exactly as parsing a Fountain file would. Converts only
+ * from the types Enter flows into on its own (action, character, scene
+ * heading, transition), since no real line of those starts with "# " or
+ * "= "; dialogue and the rest stay untouched.
  */
+const STRUCTURE_CONVERTIBLE: ReadonlySet<ElementType> = new Set([
+  'action',
+  'character',
+  'scene_heading',
+  'transition'
+])
+
 export function detectStructure(
   text: string,
   current: ElementType
 ): { type: 'section'; depth: number; text: string } | { type: 'synopsis'; text: string } | null {
-  if (current !== 'action') return null
+  if (!STRUCTURE_CONVERTIBLE.has(current)) return null
   const section = text.match(/^(#{1,6})\s+(.+)$/)
   if (section) return { type: 'section', depth: section[1]!.length, text: section[2]!.trim() }
   const synopsis = text.match(/^=\s+(.+)$/)

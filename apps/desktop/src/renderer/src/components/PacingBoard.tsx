@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import type { Storyline } from '@spec/core'
 import { colorValue } from '../planning/colors'
 import { formatEighths, formatMinutes, type PacingLane, type SceneCard } from '../planning/cards'
@@ -109,7 +110,21 @@ function TensionStrip({
   lanes: PacingLane[]
   onOpenScene(sceneId: string): void
 }): React.JSX.Element {
-  const W = Math.max(600, cards.length * 28)
+  // Draw at real pixel size (measured container), so text never distorts;
+  // scripts with more scenes than fit get a horizontally scrolling strip.
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [measured, setMeasured] = useState(900)
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!el) return
+    const update = (): void => setMeasured(Math.max(300, el.clientWidth))
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const W = Math.max(measured, cards.length * 22)
   const H = 96
   const PAD = { left: 30, right: 12, top: 12, bottom: 18 }
   const innerW = W - PAD.left - PAD.right
@@ -139,8 +154,13 @@ function TensionStrip({
   const hasAny = cards.some((c) => c.tension !== null)
 
   return (
-    <div className="tension-strip" role="img" aria-label="Tension across the script">
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="tension-svg">
+    <div
+      className="tension-strip"
+      role="img"
+      aria-label="Tension across the script"
+      ref={wrapRef}
+    >
+      <svg width={W} height={H} className="tension-svg">
         {[1, 3, 5].map((t) => (
           <g key={t}>
             <line className="strip-grid" x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} />

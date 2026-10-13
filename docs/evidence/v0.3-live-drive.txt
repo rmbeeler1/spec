@@ -1,0 +1,45 @@
+PASS corkboard shows 3 cards (got 3)
+PASS card 1 shows its synopsis
+PASS card 2 falls back to first action line, greyed
+PASS card 1 shows its color
+PASS card 2 synopsis edit sticks on the card
+PASS drag moved DINER to slot 1 (got INT. DINER - DAY)
+PASS Cmd+Z undoes the card reorder from the corkboard
+PASS pacing lanes carry act titles (ACT ONE / ACT TWO)
+PASS curve has 2 points, scene with unset tension is a gap (got 2)
+PASS curve segments drawn: 0
+PASS pacing card shows INT/EXT, time, pages, minutes (INT NIGHT 1/8 pg ~1 min p.1)
+PASS double-click on a pacing card lands in the Write view
+PASS two beat cards created
+PASS flow line connects the two beats
+PASS outline shows 2 acts + 3 scenes (got 5)
+PASS acts sit in the first lane
+PASS outline click jumps to the editor
+PASS MAYA tops the character list (MAYA, STRANGER)
+PASS character filter dims other scenes (12 elements dimmed)
+PASS stash holds the cut material
+PASS cut line left the script
+PASS undo returns the text to the script
+PASS undo removes the stash entry (no duplicate)
+PASS redo re-stashes the entry
+PASS restore puts the text back
+PASS restore empties the stash pane
+PASS structure hidden via menu
+PASS typing a # line auto-shows structure
+PASS typed # line became a section (Act One | Act Two | Act Three)
+PASS sidecar Test.spec.json written
+PASS sidecar keeps the scene color
+PASS sidecar keeps tension values
+PASS sidecar keeps beats and links
+PASS sidecar keeps stash metadata
+PASS stash file is marker-tagged Fountain
+PASS synopsis edit reached the .fountain file
+PASS typed section reached the .fountain file
+PASS rename moved all three files (Renamed.fountain, Renamed.spec.json, Renamed.stash.fountain)
+PASS after relaunch, scene color re-attached by heading
+PASS after relaunch, stash chunk is back
+PASS attach renamed the orphan sidecar (Fresh.fountain, Fresh.spec.json)
+PASS attached planning data shows on the corkboard
+PASS Big Fish corkboard renders 190 cards in 73ms
+PASS pacing view on Big Fish in 50ms
+PASS 30 keystrokes on a 124-page script took 275ms (9ms each)
