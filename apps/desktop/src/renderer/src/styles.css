@@ -1692,6 +1692,55 @@ body {
   color: #fff;
 }
 
+/* ---------- Splash ---------- */
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0b0d12; /* the logo's own background */
+  animation: splash-out 1.6s ease forwards;
+  pointer-events: none;
+}
+
+.splash img {
+  width: min(480px, 60vw);
+  animation: splash-in 0.5s ease;
+}
+
+@keyframes splash-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes splash-out {
+  0%,
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash {
+    animation-duration: 0.9s;
+  }
+  .splash img {
+    animation: none;
+  }
+}
+
 /* ---------- About dialog ---------- */
 
 .about-dialog {

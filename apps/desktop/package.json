@@ -1,6 +1,6 @@
 {
   "name": "spec-desktop",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "private": true,
   "description": "Spec: a free, open-source, offline-first screenwriting app",
   "license": "MIT",

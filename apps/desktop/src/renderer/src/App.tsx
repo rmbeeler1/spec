@@ -130,6 +130,7 @@ import { ReportsView } from './components/ReportsView'
 import { GoalDialog } from './components/GoalDialog'
 import { RevisionSetsDialog } from './components/RevisionSetsDialog'
 import { routeImport, type PendingImport } from './import/route'
+import logo from '@branding/spec-logo-web.png'
 
 type SaveState = 'saved' | 'editing' | 'unsaved-no-file'
 
@@ -177,6 +178,9 @@ export default function App(): React.JSX.Element {
   const [pendingImport, setPendingImport] = useState<PendingImport | null>(null)
   const [importError, setImportError] = useState<string | null>(null)
   const [showHint, setShowHint] = useState(() => localStorage.getItem('spec:hint-seen') !== '1')
+  // Splash: the logo covers the first paint and fades itself out (the CSS
+  // animation holds, then fades; unmount on animation end)
+  const [splash, setSplash] = useState(true)
   const modKey = window.spec.platform === 'darwin' ? '⌘' : 'Ctrl+'
 
   const dismissHint = (): void => {
@@ -1371,6 +1375,18 @@ export default function App(): React.JSX.Element {
           onApply={(goal) => setPlanning((p) => setWritingGoal(p, goal))}
           onClose={() => setShowGoal(false)}
         />
+      )}
+      {splash && (
+        <div
+          className="splash"
+          onAnimationEnd={(e) => {
+            // The img's own entrance animation bubbles up too
+            if (e.animationName === 'splash-out') setSplash(false)
+          }}
+          aria-hidden="true"
+        >
+          <img src={logo} alt="" />
+        </div>
       )}
       {showHint && !showShortcuts && (
         <FirstLaunchHint

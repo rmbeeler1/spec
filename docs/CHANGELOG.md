@@ -2,6 +2,11 @@
 
 All notable changes to Spec are recorded here.
 
+## v0.4.3 beta build (October 13, 2026)
+
+- The logo flashes up as a splash when the app loads, fading out on its own (shortened under reduced-motion settings).
+- This is the build to hand beta testers: it carries the v0.4.2 macOS signing fix and everything before it.
+
 ## v0.4.2 macOS installer fix (October 13, 2026)
 
 - The macOS app is now ad-hoc code signed. Unsigned Apple Silicon apps downloaded through a browser fail with a misleading "Spec is damaged and can't be opened" dialog; ad-hoc signed apps get the standard unidentified-developer dialog with the right-click > Open flow. Hardened runtime is off (it only matters for notarization and would block ad-hoc library loading).
