@@ -5,7 +5,7 @@ import { parseFountain } from '../fountain/parse'
 import { sequentialIdGenerator } from '../model/ids'
 import type { ElementType, Script } from '../model/types'
 import { classifyLines, type ClassifiedType } from './classifier'
-import { extractTitlePage } from './build'
+import { buildScript, extractFdTitlePage, extractTitlePage } from './build'
 import { importMarkdown, importPlainText } from './text'
 import { importDocx } from './docx'
 
@@ -178,6 +178,83 @@ describe('extractTitlePage', () => {
     const { titlePage, rest } = extractTitlePage(['CUT TO:', '', 'INT. A - DAY'])
     expect(titlePage).toEqual([])
     expect(rest.length).toBe(3)
+  })
+})
+
+describe('buildScript action merging', () => {
+  it('joins wrapped action lines into one paragraph, breaking on blanks', () => {
+    const { script } = { script: buildScript(classifyLines([
+      { text: 'The door is barricaded. It is damp. There is a barred window' },
+      { text: 'just above ground level in the rear of the room.' },
+      { text: '' },
+      { text: 'A second paragraph stays separate.' }
+    ]), [], sequentialIdGenerator()) }
+    const actions = script.elements.filter((e) => e.type === 'action')
+    expect(actions).toHaveLength(2)
+    expect(actions[0]!.text).toBe(
+      'The door is barricaded. It is damp. There is a barred window just above ground level in the rear of the room.'
+    )
+    expect(actions[0]!.text).not.toContain('\n')
+  })
+})
+
+describe('extractFdTitlePage', () => {
+  const UNFILLED = [
+    '(Name of Project)',
+    '',
+    'by',
+    '(Name of First Writer)',
+    '',
+    '(Based on, If Any)',
+    '',
+    'Revisions by',
+    '(Names of Subsequent Writers,',
+    'in Order of Work Performed)',
+    '',
+    'Current Revisions by',
+    '(Current Writer, date)',
+    '',
+    'Name (of company, if applicable)',
+    'Address',
+    'Phone Number'
+  ]
+
+  it('recognizes an unfilled Final Draft template and drops every placeholder', () => {
+    expect(extractFdTitlePage(UNFILLED)).toEqual([])
+  })
+
+  it('routes a filled template to title page entries', () => {
+    const entries = extractFdTitlePage([
+      'NIGHT OF THE LIVING TEST',
+      '',
+      'written by',
+      'Ryan Beeler',
+      '',
+      'Based on a true story',
+      '',
+      'ryan@example.com',
+      '555-0100'
+    ])
+    expect(entries).toEqual([
+      { key: 'Title', values: ['NIGHT OF THE LIVING TEST'] },
+      { key: 'Credit', values: ['written by'] },
+      { key: 'Author', values: ['Ryan Beeler'] },
+      { key: 'Source', values: ['Based on a true story'] },
+      { key: 'Contact', values: ['ryan@example.com', '555-0100'] }
+    ])
+  })
+
+  it('a dangling "by" with a placeholder author produces no credit entry', () => {
+    expect(extractFdTitlePage(['REAL TITLE', 'by', '(Name of First Writer)'])).toEqual([
+      { key: 'Title', values: ['REAL TITLE'] }
+    ])
+  })
+
+  it('refuses pages that are script content, not a title page', () => {
+    expect(extractFdTitlePage(['INT. BASEMENT - DAY', '', 'The door is barricaded.'])).toBeNull()
+    expect(extractFdTitlePage(['Just some action.', 'More action.'])).toBeNull()
+    const long = Array.from({ length: 20 }, (_, i) => `Line ${i}`)
+    expect(extractFdTitlePage(['TITLE', 'by', 'Someone', ...long])).toBeNull()
   })
 })
 

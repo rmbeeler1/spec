@@ -29,6 +29,38 @@ describe('importPdf', () => {
     expect(cues).toBeGreaterThanOrEqual(originalCues * 0.8)
   }, 120_000)
 
+  // Owner's real import, added to the corpus Oct 12, 2026 after three
+  // confident misreads. Each assertion below is one of them.
+  it('imports the zombie short: merged paragraphs, no page numbers, no template placeholders', async () => {
+    const data = readFileSync(join(CORPUS, 'pdf/Untitled Zombie Shortfilm.pdf'))
+    const { script } = await importPdf(data, { idGenerator: sequentialIdGenerator() })
+
+    // (1) Wrapped action lines merge into one flowing paragraph
+    const firstAction = script.elements.find((e) => e.type === 'action')
+    expect(firstAction).toBeDefined()
+    expect(firstAction!.text).not.toContain('\n')
+    expect(firstAction!.text).toContain('The door is barricaded.')
+    expect(firstAction!.text).toContain('sits on a barrel holding a pistol')
+
+    // (2) Page numbers like "2." never become elements
+    const pageNumbers = script.elements.filter((e) => /^\d{1,3}\.?$/.test(e.text.trim()))
+    expect(pageNumbers).toEqual([])
+
+    // (3) Final Draft template placeholders are gone: not in the body and
+    // not on the title page (every field in this PDF is an unfilled
+    // placeholder, so the title page comes out empty)
+    const body = script.elements.map((e) => e.text).join('\n')
+    expect(body).not.toContain('Name of Project')
+    expect(body).not.toContain('Name of First Writer')
+    expect(body).not.toContain('Phone Number')
+    expect(script.titlePage).toEqual([])
+
+    // The script itself still came through
+    expect(script.elements[0]).toMatchObject({ type: 'scene_heading', text: 'INT. BASEMENT - DAY' })
+    const cues = script.elements.filter((e) => e.type === 'character').length
+    expect(cues).toBeGreaterThan(80)
+  }, 120_000)
+
   it('rejects a PDF without a text layer with a clear error', async () => {
     const doc = await PDFDocument.create()
     doc.addPage([612, 792]) // a blank page: no text at all

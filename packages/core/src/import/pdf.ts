@@ -1,6 +1,7 @@
 import type { IdGenerator } from '../model/ids'
+import type { TitlePageEntry } from '../model/types'
 import { classifyLines, type ImportLine } from './classifier'
-import { buildScript, extractTitlePage } from './build'
+import { buildScript, extractFdTitlePage, extractTitlePage } from './build'
 import type { ImportResult } from './text'
 
 /**
@@ -45,7 +46,7 @@ export async function importPdf(
     throw new Error('Could not read this file as a PDF')
   }
 
-  const rawLines: Array<{ text: string; x: number }> = []
+  const pages: Array<Array<{ text: string; x: number }>> = []
   let minX = Number.POSITIVE_INFINITY
   let maxWidth = 0
 
@@ -77,6 +78,7 @@ export async function importPdf(
       bucket.push({ x, str: item.str })
     }
 
+    const pageLines: Array<{ text: string; x: number }> = []
     const ys = [...byLine.keys()].sort((a, b) => b - a)
     let lastY: number | null = null
     for (const y of ys) {
@@ -86,13 +88,27 @@ export async function importPdf(
       const x = parts[0]!.x
       minX = Math.min(minX, x)
       // A vertical gap of more than ~1.5 line heights means a blank line
-      if (lastY !== null && lastY - y > 18) rawLines.push({ text: '', x: 0 })
-      rawLines.push({ text, x })
+      if (lastY !== null && lastY - y > 18) pageLines.push({ text: '', x: 0 })
+      pageLines.push({ text, x })
       lastY = y
     }
-    rawLines.push({ text: '', x: 0 }) // page boundary acts as a blank line
+    pages.push(stripPageFurniture(pageLines))
   }
   await task.destroy()
+
+  // Final Draft style title page: centered lines on page one, no key:value
+  // pairs. Route real values to the title page, drop template placeholders.
+  let fdTitlePage: TitlePageEntry[] | null = null
+  if (pages.length > 1) {
+    fdTitlePage = extractFdTitlePage(pages[0]!.map((l) => l.text))
+    if (fdTitlePage !== null) pages.shift()
+  }
+
+  const rawLines: Array<{ text: string; x: number }> = []
+  for (const pageLines of pages) {
+    rawLines.push(...pageLines)
+    rawLines.push({ text: '', x: 0 }) // page boundary acts as a blank line
+  }
 
   const totalChars = rawLines.reduce((n, l) => n + l.text.length, 0)
   if (totalChars < 40) {
@@ -111,5 +127,32 @@ export async function importPdf(
   const { titlePage, rest } = extractTitlePage(importLines.map((l) => l.text))
   const trimmed = importLines.slice(importLines.length - rest.length)
   const classified = classifyLines(trimmed)
-  return { script: buildScript(classified, titlePage, options.idGenerator), lines: classified }
+  return {
+    script: buildScript(classified, fdTitlePage ?? titlePage, options.idGenerator),
+    lines: classified
+  }
+}
+
+/**
+ * Printed-page furniture is not script content: a standalone page number
+ * ("2." top right, sometimes "Page 2") at the very top or bottom of a page
+ * is dropped before classification.
+ */
+const PAGE_NUMBER_RE = /^\s*(page\s+)?\d{1,3}\.?\s*$/i
+
+function stripPageFurniture(
+  pageLines: Array<{ text: string; x: number }>
+): Array<{ text: string; x: number }> {
+  const lines = [...pageLines]
+  const firstContent = lines.findIndex((l) => l.text.trim() !== '')
+  if (firstContent !== -1 && PAGE_NUMBER_RE.test(lines[firstContent]!.text)) {
+    lines.splice(firstContent, 1)
+  }
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const text = lines[i]!.text.trim()
+    if (text === '') continue
+    if (PAGE_NUMBER_RE.test(text)) lines.splice(i, 1)
+    break
+  }
+  return lines
 }
