@@ -150,3 +150,6 @@ vite.config.ts.timestamp-*
 
 # electron-builder output
 apps/desktop/release/
+
+# macOS Finder artifacts
+.DS_Store
