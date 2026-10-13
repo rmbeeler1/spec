@@ -31,5 +31,41 @@ export { importPdf } from './import/pdf'
 export { readFdx, type ReadFdxOptions } from './fdx/read'
 export { writeFdx } from './fdx/write'
 export { exportPdf, type PdfExportOptions, type PdfFonts } from './pdf/exportPdf'
+export {
+  attachSceneMeta,
+  emptyPlanning,
+  isPlanningEmpty,
+  parsePlanning,
+  serializePlanning,
+  sidecarPathFor,
+  stashPathFor,
+  type AttachResult,
+  type BeatCard,
+  type BeatLink,
+  type PlanningData,
+  type SceneMeta,
+  type SceneRef,
+  type StashEntry,
+  type Storyline
+} from './planning/sidecar'
+export {
+  baseCharacterName,
+  buildOutline,
+  characterStats,
+  parseHeadingInfo,
+  sceneCardBody,
+  scenePageStats,
+  type CharacterStat,
+  type HeadingInfo,
+  type OutlineNode,
+  type ScenePages
+} from './planning/stats'
+export {
+  parseStashFile,
+  serializeStashFile,
+  stashChunkFountain,
+  stashChunkSummary,
+  type StashChunk
+} from './planning/stash'
 
 export const CORE_VERSION = '0.2.0'
