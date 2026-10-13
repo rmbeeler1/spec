@@ -2,6 +2,7 @@ import { Extension } from '@tiptap/core'
 import type { ElementType } from '@spec/core'
 import {
   cycleType,
+  detectStructure,
   detectTypeOnEnter,
   needsContd,
   nextTypeOnEnter,
@@ -35,6 +36,32 @@ export const ScreenplayKeymap = Extension.create({
           // Empty element: demote to action rather than adding another block
           if (current === 'action') return true // swallow: no empty block stacking
           return this.editor.commands.updateAttributes('element', { type: 'action' })
+        }
+
+        // "# Act One" or "= synopsis" typed by hand become structure elements
+        const structure = detectStructure(node.textContent, current)
+        if (structure) {
+          const from = state.selection.$from.start()
+          const to = state.selection.$from.end()
+          return this.editor
+            .chain()
+            .command(({ tr }) => {
+              tr.insertText(structure.text, from, to)
+              return true
+            })
+            .updateAttributes('element', {
+              type: structure.type,
+              depth: structure.type === 'section' ? structure.depth : null
+            })
+            .splitBlock({ keepMarks: false })
+            .updateAttributes('element', {
+              type: 'action',
+              elementId: null,
+              sceneNumber: null,
+              dual: false,
+              depth: null
+            })
+            .run()
         }
 
         const detected = detectTypeOnEnter(node.textContent, current)

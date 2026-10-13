@@ -1,9 +1,16 @@
 import { BrowserWindow, app, dialog, ipcMain } from 'electron'
 import { readFile, writeFile } from 'node:fs/promises'
-import { basename, join } from 'node:path'
-import type { OpenedFile } from '../shared/ipc'
+import { basename, dirname, join } from 'node:path'
+import type { OpenedFile, OrphanSidecarInfo } from '../shared/ipc'
 import { listSnapshots, readSnapshot, safeSave } from './files'
-import { addRecent, getRecents } from './recents'
+import {
+  attachOrphan,
+  findOrphanSidecar,
+  readTextIfExists,
+  renameScriptFiles,
+  writePlanningFile
+} from './planning'
+import { addRecent, getRecents, replaceRecent } from './recents'
 import { buildMenu } from './menu'
 
 interface DocumentState {
@@ -129,6 +136,58 @@ function registerIpc(): void {
   )
 
   ipcMain.handle('recents:get', () => getRecents(app.getPath('userData')))
+
+  ipcMain.handle('planning:read', (_event, path: unknown) =>
+    typeof path === 'string' ? readTextIfExists(path) : null
+  )
+
+  ipcMain.handle('planning:write', async (_event, path: unknown, content: unknown) => {
+    if (typeof path !== 'string' || typeof content !== 'string') {
+      throw new Error('Bad planning write request')
+    }
+    await writePlanningFile(path, content)
+  })
+
+  ipcMain.handle('file:rename', async (event, oldPath: unknown, newName: unknown) => {
+    if (typeof oldPath !== 'string' || typeof newName !== 'string') {
+      return { error: 'Bad rename request' }
+    }
+    // The new name stays in the script's folder; strip any path separators
+    const clean = newName.replace(/[/\\]/g, '').trim()
+    if (clean.length === 0) return { error: 'The new name is empty.' }
+    const withExt = /\.(fountain|txt)$/i.test(clean) ? clean : `${clean}.fountain`
+    const newPath = join(dirname(oldPath), withExt)
+    if (newPath === oldPath) return { newPath }
+    try {
+      const result = await renameScriptFiles(oldPath, newPath)
+      await replaceRecent(app.getPath('userData'), oldPath, result.newPath)
+      await buildMenu(menuDeps)
+      const win = BrowserWindow.fromWebContents(event.sender)
+      if (win && docState.filePath === oldPath) {
+        docState.filePath = result.newPath
+        updateTitle(win)
+      }
+      return { newPath: result.newPath }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle('planning:find-orphan', (_event, scriptPath: unknown) =>
+    typeof scriptPath === 'string' ? findOrphanSidecar(scriptPath) : null
+  )
+
+  ipcMain.handle('planning:attach-orphan', async (_event, orphan: unknown, scriptPath: unknown) => {
+    if (typeof scriptPath !== 'string' || typeof orphan !== 'object' || orphan === null) {
+      return 'Bad attach request'
+    }
+    try {
+      await attachOrphan(orphan as OrphanSidecarInfo, scriptPath)
+      return null
+    } catch (err) {
+      return err instanceof Error ? err.message : String(err)
+    }
+  })
 
   ipcMain.on('doc:state', (event, filePath: unknown, dirty: unknown) => {
     docState.filePath = typeof filePath === 'string' ? filePath : null

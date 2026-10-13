@@ -26,6 +26,7 @@ export type MenuCommand =
   | 'file:import'
   | 'file:save'
   | 'file:save-as'
+  | 'file:rename'
   | 'file:export-pdf'
   | 'file:export-fdx'
   | 'file:export-fountain'
@@ -34,9 +35,25 @@ export type MenuCommand =
   | 'view:toggle-dark'
   | 'view:toggle-focus'
   | 'view:toggle-structure'
+  | 'view:toggle-stash'
   | 'view:title-page'
+  | 'view:write'
+  | 'view:corkboard'
+  | 'view:pacing'
+  | 'view:beatboard'
+  | 'view:outline'
   | 'help:shortcuts'
   | 'help:welcome'
+
+/** A planning sidecar in the script's folder whose own script file is gone. */
+export interface OrphanSidecarInfo {
+  sidecarPath: string
+  stashPath: string | null
+  /** Name of the script file the orphan belonged to, for the prompt text. */
+  missingScript: string
+}
+
+export type RenameOutcome = { newPath: string } | { error: string }
 
 export interface SpecApi {
   platform: string
@@ -56,6 +73,15 @@ export interface SpecApi {
   readSnapshot(path: string, id: string): Promise<string | null>
   /** Tell main the current document state for the window title and close guard. */
   setDocumentState(filePath: string | null, dirty: boolean): void
+  /** Read a text file, null when it does not exist (sidecar, stash). */
+  readTextFile(path: string): Promise<string | null>
+  /** Atomic write for planning files; empty content removes the file. */
+  writePlanningFile(path: string, content: string): Promise<void>
+  /** Rename the script plus its sidecar and stash. newName is a file name. */
+  renameScript(oldPath: string, newName: string): Promise<RenameOutcome>
+  findOrphanSidecar(scriptPath: string): Promise<OrphanSidecarInfo | null>
+  /** Returns an error message, or null on success. */
+  attachOrphanSidecar(orphan: OrphanSidecarInfo, scriptPath: string): Promise<string | null>
   getRecentFiles(): Promise<string[]>
   onMenuCommand(handler: (command: MenuCommand) => void): void
   /** Open-recent clicks arrive as opened files, same shape as openFile(). */

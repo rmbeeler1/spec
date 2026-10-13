@@ -26,3 +26,17 @@ export async function addRecent(userDataDir: string, filePath: string): Promise<
   await writeFile(target, JSON.stringify(next, null, 2), 'utf8')
   return next
 }
+
+/** After an in-app rename, the old path in recents becomes the new one. */
+export async function replaceRecent(
+  userDataDir: string,
+  oldPath: string,
+  newPath: string
+): Promise<string[]> {
+  const list = await getRecents(userDataDir)
+  const next = list.map((p) => (p === oldPath ? newPath : p))
+  const target = recentsPathFor(userDataDir)
+  await mkdir(dirname(target), { recursive: true })
+  await writeFile(target, JSON.stringify(next, null, 2), 'utf8')
+  return next
+}

@@ -13,6 +13,12 @@ const api: SpecApi = {
   listSnapshots: (path) => ipcRenderer.invoke('snapshots:list', path),
   readSnapshot: (path, id) => ipcRenderer.invoke('snapshots:read', path, id),
   setDocumentState: (filePath, dirty) => ipcRenderer.send('doc:state', filePath, dirty),
+  readTextFile: (path) => ipcRenderer.invoke('planning:read', path),
+  writePlanningFile: (path, content) => ipcRenderer.invoke('planning:write', path, content),
+  renameScript: (oldPath, newName) => ipcRenderer.invoke('file:rename', oldPath, newName),
+  findOrphanSidecar: (scriptPath) => ipcRenderer.invoke('planning:find-orphan', scriptPath),
+  attachOrphanSidecar: (orphan, scriptPath) =>
+    ipcRenderer.invoke('planning:attach-orphan', orphan, scriptPath),
   getRecentFiles: () => ipcRenderer.invoke('recents:get'),
   onMenuCommand: (handler) => {
     ipcRenderer.on('menu:command', (_event, command: MenuCommand) => handler(command))

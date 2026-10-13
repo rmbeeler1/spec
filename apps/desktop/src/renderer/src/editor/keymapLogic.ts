@@ -1,5 +1,8 @@
-import type { ElementType } from '@spec/core'
+import { baseCharacterName, type ElementType } from '@spec/core'
 import { CYCLE_TYPES } from './schema'
+
+// The canonical implementation lives in core (planning stats use it too)
+export { baseCharacterName }
 
 /**
  * The keyboard model, as pure functions so it can be unit tested without a
@@ -54,6 +57,24 @@ export function detectTypeOnEnter(text: string, current: ElementType): ElementTy
   return current
 }
 
+/**
+ * Structure markers typed by hand: "# Act One" becomes a section (depth from
+ * the number of #s), "= She leaves." a synopsis. The marker is stripped from
+ * the stored text, exactly as parsing a Fountain file would. Only plain
+ * action lines convert, so chosen types are never overridden.
+ */
+export function detectStructure(
+  text: string,
+  current: ElementType
+): { type: 'section'; depth: number; text: string } | { type: 'synopsis'; text: string } | null {
+  if (current !== 'action') return null
+  const section = text.match(/^(#{1,6})\s+(.+)$/)
+  if (section) return { type: 'section', depth: section[1]!.length, text: section[2]!.trim() }
+  const synopsis = text.match(/^=\s+(.+)$/)
+  if (synopsis && !text.startsWith('==')) return { type: 'synopsis', text: synopsis[1]!.trim() }
+  return null
+}
+
 /** Keyboard shortcuts CmdOrCtrl+1..6 map straight to element types. */
 export function typeForShortcut(digit: number): ElementType | null {
   return CYCLE_TYPES[digit - 1] ?? null
@@ -69,15 +90,6 @@ export function normalizeSceneHeading(text: string): string {
   if (!m) return text
   const prefix = m[2]!.toUpperCase().replace(/\.$/, '').replace('INT/EXT', 'INT./EXT')
   return `${prefix}. ${m[4] ?? ''}`.trimEnd()
-}
-
-/** "EDWARD (V.O.) ^" and "edward (CONT'D)" both compare as EDWARD. */
-export function baseCharacterName(cue: string): string {
-  return cue
-    .replace(/\^\s*$/, '')
-    .replace(/\([^)]*\)/g, '')
-    .trim()
-    .toUpperCase()
 }
 
 /**

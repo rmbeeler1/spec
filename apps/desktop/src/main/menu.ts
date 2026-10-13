@@ -51,6 +51,7 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
         { type: 'separator' },
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => send('file:save') },
         { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: () => send('file:save-as') },
+        { label: 'Rename…', click: () => send('file:rename') },
         { type: 'separator' },
         { label: 'Title Page…', click: () => send('view:title-page') },
         { type: 'separator' },
@@ -84,6 +85,25 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
     {
       label: 'View',
       submenu: [
+        { label: 'Write', accelerator: 'CmdOrCtrl+Alt+1', click: () => send('view:write') },
+        {
+          label: 'Corkboard',
+          accelerator: 'CmdOrCtrl+Alt+2',
+          click: () => send('view:corkboard')
+        },
+        { label: 'Pacing', accelerator: 'CmdOrCtrl+Alt+3', click: () => send('view:pacing') },
+        {
+          label: 'Beat Board',
+          accelerator: 'CmdOrCtrl+Alt+4',
+          click: () => send('view:beatboard')
+        },
+        { label: 'Outline', accelerator: 'CmdOrCtrl+Alt+5', click: () => send('view:outline') },
+        {
+          label: 'Toggle Stash',
+          accelerator: 'CmdOrCtrl+Alt+S',
+          click: () => send('view:toggle-stash')
+        },
+        { type: 'separator' },
         {
           label: 'Toggle Dark Mode',
           accelerator: 'CmdOrCtrl+Shift+D',
