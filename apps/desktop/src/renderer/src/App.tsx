@@ -5,6 +5,8 @@ import { undoDepth } from '@tiptap/pm/history'
 import type { Editor } from '@tiptap/core'
 import {
   attachPageAnchors,
+  formatConfigFor,
+  scriptFormat,
   attachRevisionMarks,
   attachSceneMeta,
   characterStats,
@@ -75,8 +77,11 @@ import { autoNumberNewScenes, renumberScenes } from './editor/numbering'
 import { findMatches, replaceAll, replaceSelection, selectNextMatch } from './editor/search'
 import { pdfFonts } from './fonts'
 import {
+  TEMPLATE_AUDIO_DRAMA,
   TEMPLATE_BLANK,
+  TEMPLATE_COMIC,
   TEMPLATE_FEATURE,
+  TEMPLATE_STAGE_PLAY,
   TEMPLATE_TV_HALF_HOUR,
   TEMPLATE_TV_HOUR
 } from './templates'
@@ -236,10 +241,11 @@ export default function App(): React.JSX.Element {
       paginateTimer.current = setTimeout(() => {
         const snapshot = currentScript()
         setScript(snapshot)
+        const fmt = formatConfigFor(scriptFormat(snapshot.titlePage))
         const pages =
           pageLocks.current.length > 0
-            ? paginateLocked(snapshot, pageLocks.current)
-            : paginate(snapshot)
+            ? paginateLocked(snapshot, pageLocks.current, fmt)
+            : paginate(snapshot, fmt)
         setPageCount(Math.max(1, pages.length))
         const breaks = computePageBreakMap(pages)
         ed.view.dispatch(ed.state.tr.setMeta(pageBreaksKey, { breaks }))
@@ -274,6 +280,7 @@ export default function App(): React.JSX.Element {
     const ids = new Set(scenes.filter((s) => s.id).map((s) => s.id!))
     return orphanSceneEntries(planning, ids)
   }, [planning, scenes])
+  const format = useMemo(() => scriptFormat(titlePage), [titlePage])
   const today = useMemo(() => {
     const entry = planning.writing?.history.find((h) => h.date === localDay())
     return { words: entry?.words ?? 0, pages: entry?.pages ?? 0 }
@@ -491,6 +498,7 @@ export default function App(): React.JSX.Element {
         if (!path) return
         const bytes = await exportPdf(script, {
           fonts: pdfFonts(),
+          pagination: formatConfigFor(scriptFormat(script.titlePage)),
           revisedElementIds: new Set(liveMarks.current.keys()),
           ...(pageLocks.current.length > 0 ? { lockedAnchors: pageLocks.current } : {})
         })
@@ -868,7 +876,10 @@ export default function App(): React.JSX.Element {
         'file:new': TEMPLATE_BLANK,
         'file:new-feature': TEMPLATE_FEATURE,
         'file:new-tv-hour': TEMPLATE_TV_HOUR,
-        'file:new-tv-half-hour': TEMPLATE_TV_HALF_HOUR
+        'file:new-tv-half-hour': TEMPLATE_TV_HALF_HOUR,
+        'file:new-stage-play': TEMPLATE_STAGE_PLAY,
+        'file:new-audio-drama': TEMPLATE_AUDIO_DRAMA,
+        'file:new-comic': TEMPLATE_COMIC
       }
       const template = templates[command]
       if (template !== undefined) {
@@ -1043,7 +1054,7 @@ export default function App(): React.JSX.Element {
 
   return (
     <div
-      className={`app view-${view}${focusMode ? ' focus-mode' : ''}${showStructure ? '' : ' structure-hidden'}`}
+      className={`app view-${view} format-${format}${focusMode ? ' focus-mode' : ''}${showStructure ? '' : ' structure-hidden'}`}
     >
       {view === 'write' && (
         <SceneNavigator

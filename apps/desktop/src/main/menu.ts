@@ -37,7 +37,11 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
           submenu: [
             { label: 'Feature Film', click: () => send('file:new-feature') },
             { label: 'TV Hour', click: () => send('file:new-tv-hour') },
-            { label: 'TV Half-Hour', click: () => send('file:new-tv-half-hour') }
+            { label: 'TV Half-Hour', click: () => send('file:new-tv-half-hour') },
+            { type: 'separator' },
+            { label: 'Stage Play', click: () => send('file:new-stage-play') },
+            { label: 'Audio Drama', click: () => send('file:new-audio-drama') },
+            { label: 'Comic', click: () => send('file:new-comic') }
           ]
         },
         { type: 'separator' },

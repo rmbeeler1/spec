@@ -42,3 +42,15 @@ describe('scene numbering', () => {
     expect(lines.filter((l) => l.sceneNumber).map((l) => l.sceneNumber)).toEqual(['1', '1A'])
   })
 })
+
+describe('script formats', () => {
+  it('reads the Format title page key, defaulting to screenplay', async () => {
+    const { scriptFormat, formatConfigFor } = await import('../model/formats')
+    expect(scriptFormat([{ key: 'Format', values: ['Stage Play'] }])).toBe('stageplay')
+    expect(scriptFormat([{ key: 'format', values: ['audio drama'] }])).toBe('audio')
+    expect(scriptFormat([{ key: 'Format', values: ['Comic'] }])).toBe('comic')
+    expect(scriptFormat([{ key: 'Title', values: ['X'] }])).toBe('screenplay')
+    expect(formatConfigFor('screenplay')).toEqual({})
+    expect(formatConfigFor('stageplay').indents?.character).toBe(0)
+  })
+})

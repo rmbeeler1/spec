@@ -1346,6 +1346,45 @@ body {
   text-transform: uppercase;
 }
 
+/* Formats: stage play and audio drama move the cues to the margin and widen
+   dialogue, mirroring their pagination configs. Comic keeps screenplay
+   layout; its structure comes from the template's PAGE/PANEL headings. */
+.format-stageplay .tiptap .el-character {
+  margin-left: 0;
+  max-width: 60ch;
+}
+
+.format-stageplay .tiptap .el-dialogue {
+  margin-left: 0;
+  max-width: 60ch;
+}
+
+.format-stageplay .tiptap .el-parenthetical {
+  margin-left: 4ch;
+  max-width: 50ch;
+}
+
+.format-stageplay .tiptap .el-action {
+  margin-left: 10ch;
+  max-width: 45ch;
+  font-style: italic;
+}
+
+.format-audio .tiptap .el-character {
+  margin-left: 0;
+  max-width: 60ch;
+}
+
+.format-audio .tiptap .el-dialogue {
+  margin-left: 15ch;
+  max-width: 45ch;
+}
+
+.format-audio .tiptap .el-parenthetical {
+  margin-left: 15ch;
+  max-width: 40ch;
+}
+
 /* Dual dialogue: left speech floats, right speech flows beside it, so the
    two cues share a top edge without any wrapper in the document */
 .tiptap .el-dual-left {

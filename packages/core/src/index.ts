@@ -7,6 +7,7 @@ export type {
 } from './model/types'
 export { randomIdGenerator, sequentialIdGenerator, type IdGenerator } from './model/ids'
 export { titlePageBlocks, type TitlePageBlocks } from './model/titlePage'
+export { formatConfigFor, scriptFormat, type ScriptFormat } from './model/formats'
 export { parseFountain, type ParseOptions } from './fountain/parse'
 export { serializeFountain } from './fountain/serialize'
 export { parseEmphasis, spansForRange, type StyledText, type StyleSpan } from './text/emphasis'
