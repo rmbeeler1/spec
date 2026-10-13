@@ -32,6 +32,7 @@ export type MenuCommand =
   | 'file:export-fountain'
   | 'file:restore-snapshot'
   | 'edit:find'
+  | 'edit:stash-selection'
   | 'view:toggle-dark'
   | 'view:toggle-focus'
   | 'view:toggle-structure'

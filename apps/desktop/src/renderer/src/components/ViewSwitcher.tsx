@@ -1,0 +1,51 @@
+export type AppView = 'write' | 'corkboard' | 'pacing' | 'beatboard' | 'outline'
+
+const VIEWS: Array<{ id: AppView; label: string }> = [
+  { id: 'write', label: 'Write' },
+  { id: 'corkboard', label: 'Corkboard' },
+  { id: 'pacing', label: 'Pacing' },
+  { id: 'beatboard', label: 'Beat Board' },
+  { id: 'outline', label: 'Outline' }
+]
+
+interface Props {
+  view: AppView
+  stashOpen: boolean
+  stashCount: number
+  modKey: string
+  onSetView(view: AppView): void
+  onToggleStash(): void
+}
+
+export function ViewSwitcher({
+  view,
+  stashOpen,
+  stashCount,
+  modKey,
+  onSetView,
+  onToggleStash
+}: Props): React.JSX.Element {
+  return (
+    <div className="view-switcher" role="tablist" aria-label="View">
+      {VIEWS.map((v, i) => (
+        <button
+          key={v.id}
+          role="tab"
+          aria-selected={view === v.id}
+          className={view === v.id ? 'active' : ''}
+          title={`${v.label} (${modKey}⌥${i + 1})`}
+          onClick={() => onSetView(v.id)}
+        >
+          {v.label}
+        </button>
+      ))}
+      <button
+        className={`stash-toggle${stashOpen ? ' active' : ''}`}
+        title={`Show or hide the stash (${modKey}⌥S)`}
+        onClick={onToggleStash}
+      >
+        Stash{stashCount > 0 ? ` (${stashCount})` : ''}
+      </button>
+    </div>
+  )
+}

@@ -15,6 +15,9 @@ export function ShortcutsDialog({ modKey, onClose }: Props): React.JSX.Element {
     [`${modKey}Shift+D`, 'Toggle dark mode'],
     [`${modKey}Shift+F`, 'Toggle focus mode (dims everything but the current line)'],
     [`${modKey}Shift+T`, 'Show or hide structure lines (# sections and = synopses)'],
+    [`${modKey}⌥1 … ${modKey}⌥5`, 'Switch view: Write, Corkboard, Pacing, Beat Board, Outline'],
+    [`${modKey}⌥S`, 'Show or hide the stash'],
+    [`${modKey}⌥X`, 'Send the selected lines to the stash'],
     [`${modKey}Z / ${modKey}Shift+Z`, 'Undo / redo']
   ]
   const tips = [

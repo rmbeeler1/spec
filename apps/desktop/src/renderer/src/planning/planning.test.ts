@@ -77,7 +77,7 @@ describe('buildSceneCards', () => {
 
   it('splits pacing lanes on depth-1 sections', () => {
     const script = parsed()
-    const lanes = pacingLanes(script, buildSceneCards(script, emptyPlanning()))
+    const lanes = pacingLanes(script)
     expect(lanes.map((l) => l.title)).toEqual(['Act One', 'Act Two'])
     expect(lanes.map((l) => l.cardIndexes)).toEqual([[0], [1]])
   })

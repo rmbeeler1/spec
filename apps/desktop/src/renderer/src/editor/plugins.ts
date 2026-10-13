@@ -65,6 +65,63 @@ export const PageBreaks = Extension.create({
 })
 
 /**
+ * Character filter: dims every scene a chosen character does not appear in.
+ * The App computes the scene IDs to KEEP and pushes them in via meta; null
+ * clears the filter.
+ */
+export const sceneDimKey = new PluginKey<DecorationSet>('sceneDim')
+
+export interface SceneDimMeta {
+  /** Scene heading element IDs to keep bright; null turns the filter off. */
+  keepSceneIds: Set<string> | null
+}
+
+function buildDimDecorations(doc: PmNode, keep: Set<string>): DecorationSet {
+  const decorations: Decoration[] = []
+  let dimming = false
+  doc.descendants((node, pos) => {
+    if (node.type.name !== 'element') return false
+    if (node.attrs['type'] === 'scene_heading') {
+      const id = node.attrs['elementId'] as string | null
+      dimming = !(id && keep.has(id))
+    }
+    if (dimming) {
+      decorations.push(Decoration.node(pos, pos + node.nodeSize, { class: 'el-dimmed' }))
+    }
+    return false
+  })
+  return DecorationSet.create(doc, decorations)
+}
+
+export const SceneDim = Extension.create({
+  name: 'sceneDim',
+  addProseMirrorPlugins() {
+    return [
+      new Plugin<DecorationSet>({
+        key: sceneDimKey,
+        state: {
+          init: () => DecorationSet.empty,
+          apply(tr, old) {
+            const meta = tr.getMeta(sceneDimKey) as SceneDimMeta | undefined
+            if (meta) {
+              return meta.keepSceneIds
+                ? buildDimDecorations(tr.doc, meta.keepSceneIds)
+                : DecorationSet.empty
+            }
+            return tr.docChanged ? old.map(tr.mapping, tr.doc) : old
+          }
+        },
+        props: {
+          decorations(state) {
+            return sceneDimKey.getState(state)
+          }
+        }
+      })
+    ]
+  }
+})
+
+/**
  * Marks the element containing the caret with a class, so focus mode can dim
  * everything else with plain CSS.
  */

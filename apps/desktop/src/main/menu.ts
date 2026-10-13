@@ -79,7 +79,12 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
         { role: 'paste' },
         { role: 'selectAll' },
         { type: 'separator' },
-        { label: 'Find and Replace…', accelerator: 'CmdOrCtrl+F', click: () => send('edit:find') }
+        { label: 'Find and Replace…', accelerator: 'CmdOrCtrl+F', click: () => send('edit:find') },
+        {
+          label: 'Send Selection to Stash',
+          accelerator: 'CmdOrCtrl+Alt+X',
+          click: () => send('edit:stash-selection')
+        }
       ]
     },
     {

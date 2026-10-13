@@ -85,7 +85,7 @@ export interface PacingLane {
 }
 
 /** Group scene cards into act lanes split by depth-1 sections. */
-export function pacingLanes(script: Script, cards: SceneCard[]): PacingLane[] {
+export function pacingLanes(script: Script): PacingLane[] {
   const lanes: PacingLane[] = []
   let current: PacingLane = { title: null, cardIndexes: [] }
   let cardIndex = 0
