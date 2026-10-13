@@ -14,10 +14,17 @@ interface Props {
   currentType: ElementType | null
   modKey: string // "⌘" on mac, "Ctrl" elsewhere
   onSetType(type: ElementType): void
+  onTitlePage(): void
   onHelp(): void
 }
 
-export function ElementToolbar({ currentType, modKey, onSetType, onHelp }: Props): React.JSX.Element {
+export function ElementToolbar({
+  currentType,
+  modKey,
+  onSetType,
+  onTitlePage,
+  onHelp
+}: Props): React.JSX.Element {
   return (
     <div className="element-toolbar" role="toolbar" aria-label="Element type">
       {CYCLE_TYPES.map((type, i) => (
@@ -35,6 +42,13 @@ export function ElementToolbar({ currentType, modKey, onSetType, onHelp }: Props
         </button>
       ))}
       <span className="tb-tip">Tab cycles · Enter flows</span>
+      <button
+        className="tb-title-page"
+        onClick={onTitlePage}
+        title="Edit the title page (also under File > Title Page)"
+      >
+        Title Page
+      </button>
       <button className="tb-help" onClick={onHelp} title="Keyboard shortcuts">
         ? Help
       </button>

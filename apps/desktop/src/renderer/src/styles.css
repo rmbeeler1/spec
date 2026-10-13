@@ -65,12 +65,33 @@ body {
 /* ---------- Scene navigator ---------- */
 
 .scene-nav {
-  width: 230px;
+  position: relative;
   flex-shrink: 0;
+  display: flex;
   background: var(--chrome-bg);
   border-right: 1px solid var(--chrome-border);
+}
+
+.scene-nav-inner {
+  flex: 1;
+  min-width: 0;
   overflow-y: auto;
   padding: 12px;
+}
+
+/* Drag the right edge to resize the scene list */
+.scene-nav-resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 7px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.scene-nav-resizer:hover {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .scene-nav h2 {
@@ -88,7 +109,7 @@ body {
 
 .scene-nav li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 4px;
 }
 
@@ -118,20 +139,28 @@ body {
   min-width: 1.4em;
 }
 
+/* Headings wrap up to three lines instead of truncating to uselessness */
 .scene-title {
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
   text-transform: uppercase;
+  line-height: 1.3;
 }
 
+/* Keep space reserved so rows do not shift when the buttons appear */
 .scene-move {
-  display: none;
+  visibility: hidden;
+  display: inline-flex;
   gap: 2px;
+  margin-top: 3px;
 }
 
-.scene-nav li:hover .scene-move {
-  display: inline-flex;
+.scene-nav li:hover .scene-move,
+.scene-nav li:focus-within .scene-move {
+  visibility: visible;
 }
 
 .scene-move button {
@@ -281,6 +310,98 @@ body {
   padding-top: 2px;
 }
 
+/* View > Show Structure off: sections and synopses disappear from the page */
+.structure-hidden .tiptap .el-section,
+.structure-hidden .tiptap .el-synopsis {
+  display: none;
+}
+
+/* ---------- Title page as page zero ---------- */
+
+.title-page-zero {
+  font-family: 'Courier Prime', Courier, monospace;
+  font-size: 12pt;
+  background: var(--paper);
+  color: var(--ink);
+  max-width: calc(60ch + 12ch);
+  margin: 0 auto 28px;
+  aspect-ratio: 8.5 / 11;
+  padding: 8ch 6ch;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.14);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  cursor: pointer;
+}
+
+.title-page-zero:hover {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.title-page-zero .tp-edit-hint {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.72rem;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.title-page-zero:hover .tp-edit-hint,
+.title-page-zero:focus-visible .tp-edit-hint {
+  opacity: 1;
+}
+
+.title-page-zero .tp-centered {
+  margin-top: 28%;
+  text-align: center;
+}
+
+.title-page-zero .tp-bottom {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2ch;
+}
+
+.title-page-zero .tp-draft {
+  text-align: right;
+}
+
+.title-page-zero .tp-line {
+  line-height: 1;
+  margin-top: 0.35em;
+  white-space: pre-wrap;
+}
+
+.title-page-empty {
+  display: block;
+  width: 100%;
+  max-width: calc(60ch + 12ch);
+  margin: 0 auto 20px;
+  padding: 10px;
+  border: 1px dashed var(--divider);
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.title-page-empty:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Focus mode is for writing: hide the title page preview */
+.focus-mode .title-page-zero,
+.focus-mode .title-page-empty {
+  display: none;
+}
+
 /* Focus mode: dim everything but the current element */
 .focus-mode .tiptap .el {
   opacity: 0.3;
@@ -339,8 +460,12 @@ body {
   color: var(--muted);
 }
 
-.element-toolbar .tb-help {
+.element-toolbar .tb-title-page {
   margin-left: auto;
+  flex-direction: row;
+}
+
+.element-toolbar .tb-help {
   flex-direction: row;
   gap: 4px;
 }

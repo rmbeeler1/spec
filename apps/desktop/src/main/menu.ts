@@ -94,6 +94,11 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
           accelerator: 'CmdOrCtrl+Shift+F',
           click: () => send('view:toggle-focus')
         },
+        {
+          label: 'Show Structure',
+          accelerator: 'CmdOrCtrl+Shift+T',
+          click: () => send('view:toggle-structure')
+        },
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },

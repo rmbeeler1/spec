@@ -33,6 +33,7 @@ export type MenuCommand =
   | 'edit:find'
   | 'view:toggle-dark'
   | 'view:toggle-focus'
+  | 'view:toggle-structure'
   | 'view:title-page'
   | 'help:shortcuts'
   | 'help:welcome'

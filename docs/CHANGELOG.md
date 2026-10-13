@@ -2,6 +2,13 @@
 
 All notable changes to Spec are recorded here.
 
+## Unreleased: pre-v0.3 polish (October 12, 2026, owner feedback after v0.2)
+
+- Title page now renders as page zero above the script, laid out from the same blocks the PDF exporter draws (shared `titlePageBlocks` in core, so preview and export cannot drift). Click it to edit. With no title page yet, a slim "+ Add a title page" placeholder sits above page one. Also reachable from a new Title Page toolbar button and the existing File > Title Page menu item. Hidden in focus mode.
+- View > Show Structure (Cmd/Ctrl+Shift+T): toggles # section and = synopsis lines on and off in the editor. The setting persists across restarts. Note: while structure is hidden, typing a new # line makes it vanish until toggled back on.
+- Scene sidebar is readable: headings wrap up to three lines instead of truncating on one, the full heading shows on hover, move buttons no longer shift the row when they appear, and the sidebar is resizable by dragging its right edge (width persists).
+- Working agreement recorded: no standalone classifier tuning rounds; real imports that misread lines go into test-corpus and drive fixes from there.
+
 ## v0.2.0 "Import" (October 12, 2026)
 
 - Element classifier in core: per-line element types with confidence values, using INT./EXT. patterns, caps cues, TO: transitions, parentheticals, blank-line context, and layout hints (centered, indent, bold) when the source has them.

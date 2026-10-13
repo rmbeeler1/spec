@@ -35,6 +35,7 @@ import { SceneNavigator } from './components/SceneNavigator'
 import { StatusBar } from './components/StatusBar'
 import { FindReplace } from './components/FindReplace'
 import { TitlePageDialog } from './components/TitlePageDialog'
+import { TitlePagePreview } from './components/TitlePagePreview'
 import { SnapshotsDialog } from './components/SnapshotsDialog'
 import { ElementToolbar } from './components/ElementToolbar'
 import { ShortcutsDialog } from './components/ShortcutsDialog'
@@ -53,6 +54,9 @@ export default function App(): React.JSX.Element {
   const [saveState, setSaveState] = useState<SaveState>('unsaved-no-file')
   const [dark, setDark] = useState(() => localStorage.getItem('spec:dark') === '1')
   const [focusMode, setFocusMode] = useState(false)
+  const [showStructure, setShowStructure] = useState(
+    () => localStorage.getItem('spec:structure') !== '0'
+  )
   const [scenes, setScenes] = useState<SceneInfo[]>([])
   const [pageCount, setPageCount] = useState(1)
   const [currentType, setCurrentType] = useState<ElementType | null>('scene_heading')
@@ -283,6 +287,9 @@ export default function App(): React.JSX.Element {
         case 'view:toggle-focus':
           setFocusMode((f) => !f)
           break
+        case 'view:toggle-structure':
+          setShowStructure((s) => !s)
+          break
         case 'view:title-page':
           setShowTitlePage(true)
           break
@@ -304,8 +311,14 @@ export default function App(): React.JSX.Element {
     localStorage.setItem('spec:dark', dark ? '1' : '0')
   }, [dark])
 
+  useEffect(() => {
+    localStorage.setItem('spec:structure', showStructure ? '1' : '0')
+  }, [showStructure])
+
   return (
-    <div className={`app${focusMode ? ' focus-mode' : ''}`}>
+    <div
+      className={`app${focusMode ? ' focus-mode' : ''}${showStructure ? '' : ' structure-hidden'}`}
+    >
       <SceneNavigator
         scenes={scenes}
         onJump={(pos) => editor && jumpToScene(editor, pos)}
@@ -320,6 +333,7 @@ export default function App(): React.JSX.Element {
           onSetType={(type) =>
             editor && editor.chain().focus().updateAttributes('element', { type }).run()
           }
+          onTitlePage={() => setShowTitlePage(true)}
           onHelp={() => setShowShortcuts(true)}
         />
         {showFind && editor && (
@@ -341,6 +355,7 @@ export default function App(): React.JSX.Element {
           />
         )}
         <div className="page-surface">
+          <TitlePagePreview titlePage={titlePage} onEdit={() => setShowTitlePage(true)} />
           <EditorContent editor={editor} />
         </div>
         <StatusBar

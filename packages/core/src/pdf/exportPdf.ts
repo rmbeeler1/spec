@@ -1,6 +1,7 @@
 import { PDFDocument, type PDFFont, type PDFPage } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
 import type { Script } from '../model/types'
+import { titlePageBlocks } from '../model/titlePage'
 import { paginate, type RenderLine } from '../pagination/paginate'
 import type { PaginationConfig } from '../pagination/config'
 
@@ -120,17 +121,7 @@ function drawLine(
 }
 
 function drawTitlePage(page: PDFPage, script: Script, font: PDFFont): void {
-  const get = (key: string): string[] =>
-    script.titlePage.find((e) => e.key.toLowerCase() === key.toLowerCase())?.values ?? []
-
-  const centered: string[] = []
-  const title = get('Title')
-  if (title.length > 0) centered.push(...title.map((t) => stripMarkers(t)), '')
-  const credit = get('Credit')
-  if (credit.length > 0) centered.push(...credit, '')
-  centered.push(...get('Author'), ...get('Authors'))
-  const source = get('Source')
-  if (source.length > 0) centered.push('', ...source)
+  const { centered, contact, draft } = titlePageBlocks(script.titlePage)
 
   let lineIndex = 16 // title block starts about a third down the page
   for (const text of centered) {
@@ -142,13 +133,11 @@ function drawTitlePage(page: PDFPage, script: Script, font: PDFFont): void {
   }
 
   // Contact block bottom left, draft date bottom right
-  const contact = [...get('Contact'), ...get('Copyright')]
   let y = 144
   for (const text of contact.slice().reverse()) {
     page.drawText(text, { x: LEFT_MARGIN, y, size: FONT_SIZE, font })
     y += LINE_HEIGHT
   }
-  const draft = [...get('Draft date'), ...get('Date')]
   y = 144
   for (const text of draft.slice().reverse()) {
     page.drawText(text, {
@@ -161,7 +150,3 @@ function drawTitlePage(page: PDFPage, script: Script, font: PDFFont): void {
   }
 }
 
-/** Title page values can carry emphasis markers; render them plain. */
-function stripMarkers(s: string): string {
-  return s.replace(/\*+/g, '').replace(/_/g, '')
-}
