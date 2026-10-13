@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { emptyPlanning, parseFountain, sequentialIdGenerator, type PlanningData } from '@spec/core'
 import { buildSceneCards, formatEighths, formatMinutes, pacingLanes } from './cards'
 import {
+  orphanSceneEntries,
   patchSceneMeta,
+  reattachSceneMeta,
   refreshHeadings,
   removeBeat,
+  removeSceneMeta,
   removeStashEntry,
   addStashEntry,
   toggleBeatLink,
@@ -124,6 +127,31 @@ describe('planning state helpers', () => {
     d = removeBeat(d, 'b1')
     expect(d.beats.map((b) => b.id)).toEqual(['b2'])
     expect(d.beatLinks).toHaveLength(0)
+  })
+
+  it('finds orphaned scene entries and re-attaches them with a merge', () => {
+    let d = patchSceneMeta(base, 'dead', 'INT. GONE - DAY', { color: 'red', tension: 4 })
+    d = patchSceneMeta(d, 'live', 'INT. HERE - DAY', { tags: ['keep'] })
+
+    const orphans = orphanSceneEntries(d, new Set(['live']))
+    expect(orphans.map((o) => o.id)).toEqual(['dead'])
+
+    // Re-attach the orphan onto the live scene: fields merge, orphan goes
+    d = reattachSceneMeta(d, 'dead', { id: 'live', heading: 'INT. HERE - DAY' })
+    expect(d.scenes).toHaveLength(1)
+    expect(d.scenes[0]).toMatchObject({
+      id: 'live',
+      color: 'red',
+      tension: 4,
+      tags: ['keep']
+    })
+    expect(orphanSceneEntries(d, new Set(['live']))).toEqual([])
+  })
+
+  it('removeSceneMeta discards a dead entry', () => {
+    let d = patchSceneMeta(base, 'dead', 'INT. GONE - DAY', { color: 'red' })
+    d = removeSceneMeta(d, 'dead')
+    expect(d.scenes).toEqual([])
   })
 
   it('stash entries add newest-first and remove by id', () => {

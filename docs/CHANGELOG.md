@@ -2,9 +2,13 @@
 
 All notable changes to Spec are recorded here.
 
-## Unreleased: PDF import fixes from real use (October 12, 2026)
+## v0.3.1 import and planning-safety fixes (October 12, 2026)
 
-First application of the corpus agreement: the owner's real import (test-corpus/pdf/Untitled Zombie Shortfilm.pdf) exposed three confident misreads, each now fixed and gated by a test against that file.
+First application of the corpus agreement: the owner's real import (test-corpus/pdf/Untitled Zombie Shortfilm.pdf) exposed misreads, each now fixed and gated by a test against that file.
+
+- (MORE)/(CONT'D) page-break furniture in source PDFs is repaired: a "(MORE)" at a page bottom followed by a repeated "NAME (CONT'D)" cue at the next page top is removed and the split speech joins back into one. Real mid-page (CONT'D) cues are left alone.
+- Orphaned planning entries are no longer silent: when entries in the sidecar (colors, tags, tension) match no scene in the open script, a banner reports the count, and a Review dialog re-attaches each entry to a scene of your choice (or removes it deliberately). Works at load and live, for example after stashing a colored scene.
+- Process: CLAUDE.md now requires the owner to check manual acceptance boxes before a release is tagged (build, verify, report, then stop and wait).
 
 - Wrapped action lines merge into one flowing paragraph (blank lines still separate paragraphs), so imported action re-wraps at proper screenplay width instead of keeping the source PDF's ragged line breaks. Applies to all classifier imports (PDF, DOCX, TXT, MD); dialogue keeps its lines since the paginator re-wraps it anyway.
 - Standalone page numbers at the top or bottom of a PDF page ("2.", "Page 2") are stripped before classification instead of importing as action.

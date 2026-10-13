@@ -60,9 +60,12 @@ import {
 import { buildSceneCards, pacingLanes, type SceneCard } from './planning/cards'
 import {
   addStashEntry,
+  orphanSceneEntries,
   patchSceneMeta,
+  reattachSceneMeta,
   refreshHeadings,
   removeBeat,
+  removeSceneMeta,
   removeStashEntry,
   sceneMetaMap,
   toggleBeatLink,
@@ -88,6 +91,7 @@ import { StashPane, type StashItemView } from './components/StashPane'
 import { CharacterNavigator } from './components/CharacterNavigator'
 import { RenameDialog } from './components/RenameDialog'
 import { OrphanPrompt } from './components/OrphanPrompt'
+import { OrphanMetaBanner } from './components/OrphanMetaBanner'
 import { routeImport, type PendingImport } from './import/route'
 
 type SaveState = 'saved' | 'editing' | 'unsaved-no-file'
@@ -128,6 +132,7 @@ export default function App(): React.JSX.Element {
   const [showRename, setShowRename] = useState(false)
   const [renameError, setRenameError] = useState<string | null>(null)
   const [orphan, setOrphan] = useState<OrphanSidecarInfo | null>(null)
+  const [orphanBannerDismissed, setOrphanBannerDismissed] = useState(false)
   const [pendingImport, setPendingImport] = useState<PendingImport | null>(null)
   const [importError, setImportError] = useState<string | null>(null)
   const [showHint, setShowHint] = useState(() => localStorage.getItem('spec:hint-seen') !== '1')
@@ -201,6 +206,10 @@ export default function App(): React.JSX.Element {
     () => new Map(scenes.filter((s) => s.id).map((s) => [s.id!, s.heading])),
     [scenes]
   )
+  const orphanMeta = useMemo(() => {
+    const ids = new Set(scenes.filter((s) => s.id).map((s) => s.id!))
+    return orphanSceneEntries(planning, ids)
+  }, [planning, scenes])
   const sceneColors = useMemo(() => {
     const out = new Map<string, string>()
     for (const [id, meta] of sceneMetaMap(planning)) {
@@ -266,6 +275,7 @@ export default function App(): React.JSX.Element {
     chunkArchive.current.clear()
     setFilteredCharacter(null)
     setSelectedCharacter(null)
+    setOrphanBannerDismissed(false)
 
     let data = emptyPlanning()
     let foundSidecar = false
@@ -741,6 +751,20 @@ export default function App(): React.JSX.Element {
             }
             onTitlePage={() => setShowTitlePage(true)}
             onHelp={() => setShowShortcuts(true)}
+          />
+        )}
+        {orphanMeta.length > 0 && !orphanBannerDismissed && (
+          <OrphanMetaBanner
+            orphans={orphanMeta}
+            scenes={scenes.filter((s) => s.id).map((s) => ({ id: s.id!, heading: s.heading }))}
+            onAttach={(orphanId, sceneId) => {
+              const scene = scenes.find((s) => s.id === sceneId)
+              if (scene) {
+                setPlanning((p) => reattachSceneMeta(p, orphanId, { id: sceneId, heading: scene.heading }))
+              }
+            }}
+            onRemove={(orphanId) => setPlanning((p) => removeSceneMeta(p, orphanId))}
+            onDismiss={() => setOrphanBannerDismissed(true)}
           />
         )}
         {view === 'write' && showFind && editor && (

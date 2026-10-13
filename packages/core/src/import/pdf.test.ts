@@ -55,6 +55,24 @@ describe('importPdf', () => {
     expect(body).not.toContain('Phone Number')
     expect(script.titlePage).toEqual([])
 
+    // (4) Page-break speech furniture is repaired: no (MORE) lines remain,
+    // and Scott's split speech is one dialogue element again
+    expect(script.elements.some((e) => /^\(\s*MORE\s*\)$/i.test(e.text.trim()))).toBe(false)
+    const idx = script.elements.findIndex(
+      (e) => e.type === 'dialogue' && e.text.includes('No refugee center.')
+    )
+    expect(idx).toBeGreaterThan(-1)
+    // The speech continues through its (beat) with no repeated cue between:
+    // dialogue, parenthetical, dialogue, all one speech again
+    expect(script.elements[idx + 1]).toMatchObject({ type: 'parenthetical', text: '(beat)' })
+    expect(script.elements[idx + 2]!.type).toBe('dialogue')
+    expect(script.elements[idx + 2]!.text).toContain('Help isn’t coming.')
+    // Real mid-page (CONT'D) cues survive (they are legitimate cues)
+    const contdCues = script.elements.filter(
+      (e) => e.type === 'character' && /\(cont[’']d\)/i.test(e.text)
+    )
+    expect(contdCues.length).toBeGreaterThan(0)
+
     // The script itself still came through
     expect(script.elements[0]).toMatchObject({ type: 'scene_heading', text: 'INT. BASEMENT - DAY' })
     const cues = script.elements.filter((e) => e.type === 'character').length

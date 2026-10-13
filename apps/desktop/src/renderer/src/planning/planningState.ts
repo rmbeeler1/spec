@@ -50,6 +50,37 @@ export function refreshHeadings(
   return changed ? { ...data, scenes: next } : data
 }
 
+/** Scene entries that no longer point at any scene in the open script. */
+export function orphanSceneEntries(data: PlanningData, sceneIds: Set<string>): SceneMeta[] {
+  return data.scenes.filter((s) => !sceneIds.has(s.id))
+}
+
+/**
+ * Re-attach an orphaned entry to a scene the writer picked: the orphan's
+ * fields merge onto the target scene's entry (the orphan wins where both
+ * have a value) and the orphan itself goes away.
+ */
+export function reattachSceneMeta(
+  data: PlanningData,
+  orphanId: string,
+  target: { id: string; heading: string }
+): PlanningData {
+  const orphan = data.scenes.find((s) => s.id === orphanId)
+  if (!orphan) return data
+  const without = { ...data, scenes: data.scenes.filter((s) => s.id !== orphanId) }
+  return patchSceneMeta(without, target.id, target.heading, {
+    ...(orphan.color !== undefined ? { color: orphan.color } : {}),
+    ...(orphan.tags !== undefined ? { tags: orphan.tags } : {}),
+    ...(orphan.storylines !== undefined ? { storylines: orphan.storylines } : {}),
+    ...(orphan.tension !== undefined ? { tension: orphan.tension } : {})
+  })
+}
+
+/** Drop a scene entry entirely (a dead orphan the writer discards). */
+export function removeSceneMeta(data: PlanningData, sceneId: string): PlanningData {
+  return { ...data, scenes: data.scenes.filter((s) => s.id !== sceneId) }
+}
+
 export function upsertBeat(data: PlanningData, beat: BeatCard): PlanningData {
   const others = data.beats.filter((b) => b.id !== beat.id)
   return { ...data, beats: [...others, beat] }

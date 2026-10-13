@@ -104,11 +104,7 @@ export async function importPdf(
     if (fdTitlePage !== null) pages.shift()
   }
 
-  const rawLines: Array<{ text: string; x: number }> = []
-  for (const pageLines of pages) {
-    rawLines.push(...pageLines)
-    rawLines.push({ text: '', x: 0 }) // page boundary acts as a blank line
-  }
+  const rawLines = joinPageBreakSpeeches(pages)
 
   const totalChars = rawLines.reduce((n, l) => n + l.text.length, 0)
   if (totalChars < 40) {
@@ -139,6 +135,59 @@ export async function importPdf(
  * is dropped before classification.
  */
 const PAGE_NUMBER_RE = /^\s*(page\s+)?\d{1,3}\.?\s*$/i
+const MORE_RE = /^\s*\(\s*more\s*\)\s*$/i
+const CONTD_CUE_RE = /^(.+?)\s*\(\s*(cont[’']d|continued)\.?\s*\)\s*$/i
+
+/**
+ * Flatten pages into one line stream, repairing speeches the source PDF
+ * split across pages: a "(MORE)" at the bottom of a page followed by a
+ * "NAME (CONT'D)" cue at the top of the next is print furniture, so both go
+ * and the page boundary vanishes, letting the dialogue merge back into one
+ * speech. A stray "(MORE)" with no matching cue is dropped on its own, and
+ * a mid-page "NAME (CONT'D)" (a real cue after action) is left alone.
+ */
+function joinPageBreakSpeeches(
+  pages: Array<Array<{ text: string; x: number }>>
+): Array<{ text: string; x: number }> {
+  const out: Array<{ text: string; x: number }> = []
+  let skipNextCue = false
+
+  for (let p = 0; p < pages.length; p++) {
+    const lines = [...pages[p]!]
+
+    if (skipNextCue) {
+      const firstContent = lines.findIndex((l) => l.text.trim() !== '')
+      if (firstContent !== -1 && CONTD_CUE_RE.test(lines[firstContent]!.text.trim())) {
+        lines.splice(0, firstContent + 1) // the repeated cue and leading blanks
+      }
+      skipNextCue = false
+    }
+
+    // Does this page end with a (MORE) continued on the next page?
+    let joinToNext = false
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const text = lines[i]!.text.trim()
+      if (text === '') continue
+      if (MORE_RE.test(text)) {
+        lines.splice(i, 1) // (MORE) is never content
+        const next = pages[p + 1]
+        const nextFirst = next?.find((l) => l.text.trim() !== '')
+        if (nextFirst && CONTD_CUE_RE.test(nextFirst.text.trim())) {
+          joinToNext = true
+          skipNextCue = true
+        }
+      }
+      break
+    }
+
+    if (joinToNext) {
+      while (lines.length > 0 && lines[lines.length - 1]!.text.trim() === '') lines.pop()
+    }
+    out.push(...lines)
+    if (!joinToNext) out.push({ text: '', x: 0 }) // page boundary acts as a blank line
+  }
+  return out
+}
 
 function stripPageFurniture(
   pageLines: Array<{ text: string; x: number }>
