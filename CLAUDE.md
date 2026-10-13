@@ -39,6 +39,7 @@ Open-source, offline-first desktop screenwriting app. Personal project, MIT lice
 ## Working agreements
 - Keep `docs/CHANGELOG.md` current. Keep `docs/screenwriting-app-plan.md` current when scope changes.
 - Commands: `pnpm install`, `pnpm dev`, `pnpm test`, `pnpm lint`, `pnpm build`. Update this list if they change.
+- Keyboard shortcuts (owner rule, Oct 13, 2026): check every new shortcut against `docs/shortcut-audit.md` before binding it; never use Cmd/Ctrl+Alt combinations (macOS system hotkeys, AltGr layouts) or Cmd+Shift+digit on macOS (screenshots).
 - Import classifier tuning (owner decision, Oct 12, 2026): no standalone classifier quality rounds. When a real import misreads lines, the owner adds that file to `test-corpus/`; treat each new corpus file as a bug report, add accuracy tests against it, and fix what it exposes.
 
 ## Current phase

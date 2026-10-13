@@ -13,7 +13,6 @@ interface Props {
   view: AppView
   stashOpen: boolean
   stashCount: number
-  modKey: string
   onSetView(view: AppView): void
   onToggleStash(): void
 }
@@ -22,10 +21,13 @@ export function ViewSwitcher({
   view,
   stashOpen,
   stashCount,
-  modKey,
   onSetView,
   onToggleStash
 }: Props): React.JSX.Element {
+  // See docs/shortcut-audit.md: the digit family is Cmd+Ctrl on mac and
+  // Ctrl+Shift elsewhere, keeping clear of Dock, screenshot and AltGr keys
+  const numKey = (n: number): string =>
+    window.spec.platform === 'darwin' ? `⌘⌃${n}` : `Ctrl+Shift+${n}`
   return (
     <div className="view-switcher" role="tablist" aria-label="View">
       {VIEWS.map((v, i) => (
@@ -34,7 +36,7 @@ export function ViewSwitcher({
           role="tab"
           aria-selected={view === v.id}
           className={view === v.id ? 'active' : ''}
-          title={`${v.label} (${modKey}⌥${i + 1})`}
+          title={`${v.label} (${numKey(i + 1)})`}
           onClick={() => onSetView(v.id)}
         >
           {v.label}
@@ -42,7 +44,7 @@ export function ViewSwitcher({
       ))}
       <button
         className={`stash-toggle${stashOpen ? ' active' : ''}`}
-        title={`Show or hide the stash (${modKey}⌥S)`}
+        title={`Show or hide the stash (${numKey(7)})`}
         onClick={onToggleStash}
       >
         Stash{stashCount > 0 ? ` (${stashCount})` : ''}

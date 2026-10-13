@@ -15,9 +15,17 @@ export function ShortcutsDialog({ modKey, onClose }: Props): React.JSX.Element {
     [`${modKey}Shift+D`, 'Toggle dark mode'],
     [`${modKey}Shift+F`, 'Toggle focus mode (dims everything but the current line)'],
     [`${modKey}Shift+T`, 'Show or hide structure lines (# sections and = synopses)'],
-    [`${modKey}⌥1 … ${modKey}⌥5`, 'Switch view: Write, Corkboard, Pacing, Beat Board, Outline'],
-    [`${modKey}⌥S`, 'Show or hide the stash'],
-    [`${modKey}⌥X`, 'Send the selected lines to the stash'],
+    ...(window.spec.platform === 'darwin'
+      ? ([
+          ['⌘⌃1 … ⌘⌃6', 'Switch view: Write, Corkboard, Pacing, Beat Board, Outline, Reports'],
+          ['⌘⌃7', 'Show or hide the stash']
+        ] as Array<[string, string]>)
+      : ([
+          ['Ctrl+Shift+1 … 6', 'Switch view: Write, Corkboard, Pacing, Beat Board, Outline, Reports'],
+          ['Ctrl+Shift+7', 'Show or hide the stash']
+        ] as Array<[string, string]>)),
+    [`${modKey}Shift+X`, 'Send the selected lines to the stash'],
+    [`${modKey}Shift+B`, 'Pair the speech at the cursor with the one before it (dual dialogue)'],
     [`${modKey}Z / ${modKey}Shift+Z`, 'Undo / redo']
   ]
   const tips = [

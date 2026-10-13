@@ -39,7 +39,7 @@ export function StashPane({
         disabled={!canStash}
         title={
           canStash
-            ? 'Cut the selected lines out of the script and keep them here (Cmd/Ctrl+Alt+X)'
+            ? 'Cut the selected lines out of the script and keep them here (Cmd/Ctrl+Shift+X)'
             : 'Put the cursor on the lines to stash, in the Write view'
         }
         onClick={onStashSelection}

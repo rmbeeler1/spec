@@ -26,6 +26,12 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
           }
         }))
 
+  // Cmd+Ctrl+digit is unclaimed by macOS (Cmd+Alt+D is the Dock toggle and
+  // Cmd+Shift+3/4/5 are screenshots); Ctrl+Shift+digit is unclaimed by
+  // Windows and Linux, and avoids AltGr (Ctrl+Alt) layouts entirely. See
+  // docs/shortcut-audit.md before adding any shortcut.
+  const num = (n: number): string => (isMac ? `Cmd+Ctrl+${n}` : `Ctrl+Shift+${n}`)
+
   const template: MenuItemConstructorOptions[] = [
     ...(isMac ? [{ role: 'appMenu' as const }] : []),
     {
@@ -86,12 +92,12 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
         { label: 'Find and Replace…', accelerator: 'CmdOrCtrl+F', click: () => send('edit:find') },
         {
           label: 'Send Selection to Stash',
-          accelerator: 'CmdOrCtrl+Alt+X',
+          accelerator: 'CmdOrCtrl+Shift+X',
           click: () => send('edit:stash-selection')
         },
         {
           label: 'Toggle Dual Dialogue',
-          accelerator: 'CmdOrCtrl+Alt+D',
+          accelerator: 'CmdOrCtrl+Shift+B',
           click: () => send('edit:toggle-dual')
         }
       ]
@@ -99,23 +105,23 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
     {
       label: 'View',
       submenu: [
-        { label: 'Write', accelerator: 'CmdOrCtrl+Alt+1', click: () => send('view:write') },
+        { label: 'Write', accelerator: num(1), click: () => send('view:write') },
         {
           label: 'Corkboard',
-          accelerator: 'CmdOrCtrl+Alt+2',
+          accelerator: num(2),
           click: () => send('view:corkboard')
         },
-        { label: 'Pacing', accelerator: 'CmdOrCtrl+Alt+3', click: () => send('view:pacing') },
+        { label: 'Pacing', accelerator: num(3), click: () => send('view:pacing') },
         {
           label: 'Beat Board',
-          accelerator: 'CmdOrCtrl+Alt+4',
+          accelerator: num(4),
           click: () => send('view:beatboard')
         },
-        { label: 'Outline', accelerator: 'CmdOrCtrl+Alt+5', click: () => send('view:outline') },
-        { label: 'Reports', accelerator: 'CmdOrCtrl+Alt+6', click: () => send('view:reports') },
+        { label: 'Outline', accelerator: num(5), click: () => send('view:outline') },
+        { label: 'Reports', accelerator: num(6), click: () => send('view:reports') },
         {
           label: 'Toggle Stash',
-          accelerator: 'CmdOrCtrl+Alt+S',
+          accelerator: num(7),
           click: () => send('view:toggle-stash')
         },
         { type: 'separator' },

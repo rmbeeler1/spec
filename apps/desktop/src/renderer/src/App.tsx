@@ -1084,7 +1084,6 @@ export default function App(): React.JSX.Element {
           view={view}
           stashOpen={stashOpen}
           stashCount={stashItems.length}
-          modKey={modKey}
           onSetView={setView}
           onToggleStash={() => setStashOpen((s) => !s)}
         />
