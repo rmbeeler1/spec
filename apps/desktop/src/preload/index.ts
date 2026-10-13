@@ -22,10 +22,14 @@ const api: SpecApi = {
     ipcRenderer.invoke('planning:attach-orphan', orphan, scriptPath),
   getRecentFiles: () => ipcRenderer.invoke('recents:get'),
   onMenuCommand: (handler) => {
-    ipcRenderer.on('menu:command', (_event, command: MenuCommand) => handler(command))
+    const listener = (_event: unknown, command: MenuCommand): void => handler(command)
+    ipcRenderer.on('menu:command', listener)
+    return () => ipcRenderer.removeListener('menu:command', listener)
   },
   onFileOpened: (handler) => {
-    ipcRenderer.on('file:opened', (_event, file: OpenedFile) => handler(file))
+    const listener = (_event: unknown, file: OpenedFile): void => handler(file)
+    ipcRenderer.on('file:opened', listener)
+    return () => ipcRenderer.removeListener('file:opened', listener)
   }
 }
 

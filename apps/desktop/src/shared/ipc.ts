@@ -99,7 +99,9 @@ export interface SpecApi {
   /** Returns an error message, or null on success. */
   attachOrphanSidecar(orphan: OrphanSidecarInfo, scriptPath: string): Promise<string | null>
   getRecentFiles(): Promise<string[]>
-  onMenuCommand(handler: (command: MenuCommand) => void): void
+  /** Returns an unsubscribe. React StrictMode mounts twice in dev; without
+   *  cleanup every menu command fires twice and toggles cancel out. */
+  onMenuCommand(handler: (command: MenuCommand) => void): () => void
   /** Open-recent clicks arrive as opened files, same shape as openFile(). */
-  onFileOpened(handler: (file: OpenedFile) => void): void
+  onFileOpened(handler: (file: OpenedFile) => void): () => void
 }

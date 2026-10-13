@@ -886,7 +886,7 @@ export default function App(): React.JSX.Element {
 
   // Native menu commands.
   useEffect(() => {
-    window.spec.onMenuCommand((command: MenuCommand) => {
+    const offMenu = window.spec.onMenuCommand((command: MenuCommand) => {
       const templates: Partial<Record<MenuCommand, string>> = {
         'file:new': TEMPLATE_BLANK,
         'file:new-feature': TEMPLATE_FEATURE,
@@ -1027,9 +1027,14 @@ export default function App(): React.JSX.Element {
           break
       }
     })
-    window.spec.onFileOpened((f) => loadContent(f.content, f.path))
-    // Registered once for the app lifetime; handlers read fresh state from
-    // stateRef, so an empty dependency list is safe here.
+    const offOpened = window.spec.onFileOpened((f) => loadContent(f.content, f.path))
+    // Handlers read fresh state from stateRef, so an empty dependency list is
+    // safe; the cleanup matters because StrictMode mounts twice in dev, and a
+    // doubled listener makes every toggle command cancel itself out.
+    return () => {
+      offMenu()
+      offOpened()
+    }
   }, [])
 
   useEffect(() => {
