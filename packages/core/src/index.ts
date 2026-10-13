@@ -31,4 +31,4 @@ export { readFdx, type ReadFdxOptions } from './fdx/read'
 export { writeFdx } from './fdx/write'
 export { exportPdf, type PdfExportOptions, type PdfFonts } from './pdf/exportPdf'
 
-export const CORE_VERSION = '0.1.0'
+export const CORE_VERSION = '0.2.0'

@@ -2,7 +2,7 @@
 
 All notable changes to Spec are recorded here.
 
-## Unreleased: v0.2 "Import" in progress (October 12, 2026)
+## v0.2.0 "Import" (October 12, 2026)
 
 - Element classifier in core: per-line element types with confidence values, using INT./EXT. patterns, caps cues, TO: transitions, parentheticals, blank-line context, and layout hints (centered, indent, bold) when the source has them.
 - Accuracy gates as tests: at least 95% on clean plain text, at least 85% on messy plain text, measured against the Fountain ground truth of the same scripts. Downgrades that plain text makes unavoidable (forced headings, forced transitions, centered text) count as correct reads of the input.
@@ -18,7 +18,6 @@ All notable changes to Spec are recorded here.
 - Markdown import rewritten after a real-world fixture (test-corpus/md/EL_AHOGADO_Screenplay.md) exposed it: inline **bold** and *italic* markers and --- rules are stripped before classification (previously **INT. ...** became 60% action and whole scripts imported as one block), bold survives as a confidence hint for cues, # headings map to sections with depth (unless the # line IS the title), and front matter ("Written by", "Based on…") routes to the title page. Verified live: 60 scenes in the sidebar and 84 pages where before there were none.
 - Review pane guidance: a summary line with a sanity check ("Found 0 scene headings and 412 cues. That's unusual." style warnings), a short what-to-do explainer, Doubtful-first on by default, and a one-click "Looks right — import N lines" button for the common path.
 - Acceptance file now distinguishes live-in-app verification from tests-only coverage per box.
-- Remaining before the v0.2.0 release: owner confirmation of docs/acceptance/v0.2.md, then tag.
 
 ## v0.1.1 discoverability pass (October 12, 2026, after hands-on feedback)
 
