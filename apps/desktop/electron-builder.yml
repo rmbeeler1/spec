@@ -30,6 +30,11 @@ linux:
   target:
     - target: AppImage
     - target: deb
+# This publish block only tells CI where to upload release assets. The app
+# itself has NO auto-updater (no electron-updater dependency, no update
+# checks, no network calls of any kind), which is deliberate: beta installers
+# are distributed by hand from a private repo. Do not add electron-updater
+# without the owner asking for it.
 publish:
   provider: github
   owner: rmbeeler1
