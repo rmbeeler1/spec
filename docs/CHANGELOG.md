@@ -2,7 +2,7 @@
 
 All notable changes to Spec are recorded here.
 
-## Unreleased (v0.4.x, pre-beta end cap)
+## v0.4.1 pre-beta end cap (October 13, 2026)
 
 - Rename a character everywhere: in the Characters sidebar tab, "Rename everywhere..." changes the name in every cue (keeping (V.O.), (CONT'D) and dual carets) and every whole-word mention in action and dialogue, preserving each mention's casing; one undo reverses it all. Scene headings stay untouched (locations are not people).
 - Corkboard cards show the scene's page number next to its length.
