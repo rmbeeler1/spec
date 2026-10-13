@@ -1,0 +1,11 @@
+PASS no MAYA left anywhere
+PASS all-caps intro became SARAH
+PASS dialogue mention became Sarah
+PASS other cues untouched
+PASS cue extension survived the rename
+PASS substring Mayan untouched
+PASS character list updated (SARAH, SCOTT)
+PASS one undo reverses the entire rename
+PASS corkboard card shows its page number (p.1 2/8 pg)
+
+9/9 checks passed

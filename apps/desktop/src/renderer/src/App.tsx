@@ -121,6 +121,8 @@ import { OutlineView } from './components/OutlineView'
 import { StashPane, type StashItemView } from './components/StashPane'
 import { CharacterNavigator } from './components/CharacterNavigator'
 import { RenameDialog } from './components/RenameDialog'
+import { RenameCharacterDialog } from './components/RenameCharacterDialog'
+import { renameCharacterEverywhere } from './editor/renameCharacter'
 import { OrphanPrompt } from './components/OrphanPrompt'
 import { OrphanMetaBanner } from './components/OrphanMetaBanner'
 import { AboutDialog } from './components/AboutDialog'
@@ -159,6 +161,7 @@ export default function App(): React.JSX.Element {
   const [pageCount, setPageCount] = useState(1)
   const [currentType, setCurrentType] = useState<ElementType | null>('scene_heading')
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null)
+  const [renameCharacter, setRenameCharacter] = useState<string | null>(null)
   const [filteredCharacter, setFilteredCharacter] = useState<string | null>(null)
   const [showFind, setShowFind] = useState(false)
   const [showTitlePage, setShowTitlePage] = useState(false)
@@ -1092,6 +1095,7 @@ export default function App(): React.JSX.Element {
               filteredCharacter={filteredCharacter}
               onFilter={filterCharacter}
               onJumpToScene={openScene}
+              onRename={setRenameCharacter}
               selected={selectedCharacter}
               onSelect={setSelectedCharacter}
             />
@@ -1271,6 +1275,22 @@ export default function App(): React.JSX.Element {
           filePath={filePath}
           onRestore={(content) => loadContent(content, filePath)}
           onClose={() => setShowSnapshots(false)}
+        />
+      )}
+      {renameCharacter && (
+        <RenameCharacterDialog
+          oldName={renameCharacter}
+          onRename={(newName) => {
+            const ed = stateRef.current.editor
+            if (!ed) return
+            const changed = renameCharacterEverywhere(ed, renameCharacter, newName)
+            if (changed > 0) {
+              refreshDerived(ed)
+              setSelectedCharacter(newName.toUpperCase())
+              if (filteredCharacter === renameCharacter) filterCharacter(newName.toUpperCase())
+            }
+          }}
+          onClose={() => setRenameCharacter(null)}
         />
       )}
       {showRename && filePath && (

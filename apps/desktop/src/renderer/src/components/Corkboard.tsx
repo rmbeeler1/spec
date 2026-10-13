@@ -122,6 +122,7 @@ export function Corkboard(props: Props): React.JSX.Element {
               </div>
             )}
             <div className="card-foot">
+              <span>p.{card.startPage}</span>
               <span>{formatEighths(card.eighths)} pg</span>
               {card.tags.map((t) => (
                 <span key={t} className="card-tag">

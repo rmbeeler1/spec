@@ -91,6 +91,11 @@ export {
   type ReportTable
 } from './planning/reports'
 export {
+  renameCharacterInScript,
+  renameCue,
+  renameInProse
+} from './planning/rename'
+export {
   nextSceneNumber,
   parseSceneNumber,
   sequentialSceneNumbers,

@@ -7,6 +7,7 @@ interface Props {
   filteredCharacter: string | null
   onFilter(name: string | null): void
   onJumpToScene(sceneId: string): void
+  onRename(name: string): void
   selected: string | null
   onSelect(name: string | null): void
 }
@@ -22,6 +23,7 @@ export function CharacterNavigator({
   filteredCharacter,
   onFilter,
   onJumpToScene,
+  onRename,
   selected,
   onSelect
 }: Props): React.JSX.Element {
@@ -53,6 +55,13 @@ export function CharacterNavigator({
                   onClick={() => onFilter(filteredCharacter === stat.name ? null : stat.name)}
                 >
                   {filteredCharacter === stat.name ? 'Unfilter script' : 'Filter script to their scenes'}
+                </button>
+                <button
+                  className="char-filter"
+                  title="Change the name everywhere: cues, action, dialogue"
+                  onClick={() => onRename(stat.name)}
+                >
+                  Rename everywhere…
                 </button>
                 <ol className="char-scenes">
                   {stat.sceneIds.map((id) => (

@@ -2,6 +2,12 @@
 
 All notable changes to Spec are recorded here.
 
+## Unreleased (v0.4.x, pre-beta end cap)
+
+- Rename a character everywhere: in the Characters sidebar tab, "Rename everywhere..." changes the name in every cue (keeping (V.O.), (CONT'D) and dual carets) and every whole-word mention in action and dialogue, preserving each mention's casing; one undo reverses it all. Scene headings stay untouched (locations are not people).
+- Corkboard cards show the scene's page number next to its length.
+- Remaining manual acceptance boxes in v0.3 and v0.4 recorded as owner-approved.
+
 ## v0.4.0 "Produce" (October 13, 2026)
 
 - The Outline view carries a short how-to for acts and sequences (structure is typed as # lines in the script; the outline mirrors it).
