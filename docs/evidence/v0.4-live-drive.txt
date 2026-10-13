@@ -1,0 +1,34 @@
+PASS renumber put numbers on all 3 headings (3)
+PASS sidebar shows scene numbers (1,2,3)
+PASS locked numbering gave the new scene an A-number (1,1A,2,3)
+PASS renumber is sequential
+PASS renumber undoes as one step
+PASS status bar tracks the goal (✎ 11 / 5 words today ✓)
+PASS second speech renders as the right column (2 elements)
+PASS dual columns share a top edge (565,565)
+PASS status bar shows the active set (* Blue Revision)
+PASS edited element carries a revision asterisk (1)
+PASS scene heading became OMITTED
+PASS scene body left the script
+PASS omitted scene sits in the stash
+PASS undo restores the omitted scene
+PASS undo clears the stash entry
+PASS un-omit restores the scene exactly
+PASS un-omit empties the stash
+PASS reports view has all tables (Scenes, Characters, Locations, INT / EXT, Time of day, Writing)
+PASS characters report lists speakers (MAYA,SCOTT)
+PASS writing history has today's row (1)
+PASS status bar shows pages locked
+PASS overflow created an A-page divider (PAGE 1A)
+PASS sidecar keeps revision sets and marks
+PASS sidecar keeps locked page anchors
+PASS sidecar keeps writing history and goal
+PASS A-numbered scene is in the Fountain file
+PASS after relaunch, revision marks re-attached
+PASS after relaunch, pages are still locked
+PASS after relaunch, the active set is back
+PASS stage play template switches the format layout
+PASS stage cues sit at the margin (0px)
+PASS comic template sets its format
+
+32/32 checks passed

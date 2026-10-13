@@ -60,6 +60,11 @@ export function nextRevisionColor(existingSets: number): string {
  * Returns live marks keyed by element ID plus the marks that found no home
  * (kept, so an undone edit brings them back).
  */
+/** Parsing trims line edges, so anchors must compare trimmed text too. */
+function anchorText(text: string): string {
+  return text.trim()
+}
+
 export function attachRevisionMarks(
   script: Script,
   marks: RevisionMark[]
@@ -71,12 +76,13 @@ export function attachRevisionMarks(
   const index: Array<{ id: string; scene: string; type: ElementType; text: string }> = []
   for (const el of script.elements) {
     if (el.type === 'scene_heading') scene = el.text
-    index.push({ id: el.id, scene, type: el.type, text: el.text })
+    index.push({ id: el.id, scene: anchorText(scene), type: el.type, text: anchorText(el.text) })
   }
   for (const mark of marks) {
+    const scene2 = anchorText(mark.scene)
+    const text2 = anchorText(mark.text)
     const hit = index.find(
-      (e) =>
-        !used.has(e.id) && e.scene === mark.scene && e.type === mark.type && e.text === mark.text
+      (e) => !used.has(e.id) && e.scene === scene2 && e.type === mark.type && e.text === text2
     )
     if (hit) {
       used.add(hit.id)
@@ -99,7 +105,9 @@ export function snapshotRevisionMarks(
   for (const el of script.elements) {
     if (el.type === 'scene_heading') scene = el.text
     const setId = live.get(el.id)
-    if (setId) out.push({ setId, scene, type: el.type, text: el.text })
+    if (setId) {
+      out.push({ setId, scene: anchorText(scene), type: el.type, text: anchorText(el.text) })
+    }
   }
   return [...out, ...unmatched]
 }

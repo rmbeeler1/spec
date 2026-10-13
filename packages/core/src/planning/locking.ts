@@ -20,7 +20,8 @@ export interface StoredPageAnchor {
 }
 
 function keyOf(scene: string, type: ElementType, text: string): string {
-  return `${scene}\u0000${type}\u0000${text}`
+  // Parsing trims line edges, so anchors compare trimmed text
+  return `${scene.trim()}\u0000${type}\u0000${text.trim()}`
 }
 
 export function attachPageAnchors(script: Script, stored: StoredPageAnchor[]): PageLockAnchor[] {

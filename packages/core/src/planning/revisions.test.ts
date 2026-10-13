@@ -63,6 +63,22 @@ describe('revision marks', () => {
     expect(out[1]!.text).toBe('ghost')
   })
 
+  it('marks with trailing whitespace survive a serialize/parse round trip', () => {
+    // Typed text often ends with a space; Fountain parsing trims it, so the
+    // anchor must still match after a reload
+    const script = parsed()
+    const action = script.elements.find((e) => e.type === 'action')!
+    const live = new Map([[action.id, 'blue']])
+    const stored = snapshotRevisionMarks(
+      { ...script, elements: script.elements.map((e) => (e.id === action.id ? { ...e, text: e.text + '  ' } : e)) },
+      live,
+      []
+    )
+    const { live: reattached, unmatched } = attachRevisionMarks(parsed(), stored)
+    expect(unmatched).toEqual([])
+    expect(reattached.size).toBe(1)
+  })
+
   it('cycles the standard color order', () => {
     expect(nextRevisionColor(0)).toBe('Blue')
     expect(nextRevisionColor(1)).toBe('Pink')

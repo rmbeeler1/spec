@@ -2,6 +2,17 @@
 
 All notable changes to Spec are recorded here.
 
+## v0.4.0 "Produce" (October 13, 2026, built; tagging awaits the owner's manual checks)
+
+- Revision mode: start a colored revision set (standard order, Blue first) from Production > Revision Sets; everything edited while it is active gets a colored asterisk in the editor margin and a bold asterisk in the exported PDF. Marks live in the sidecar as scene/type/text anchors and re-attach after reloads. Omit Scene keeps the heading as OMITTED (scene number intact) and moves the scene to the stash; Un-omit restores it exactly; both pair with Cmd/Ctrl+Z like stash moves.
+- Page locking: Production > Lock / Unlock Pages. An unedited script reproduces its locked layout to the line ((MORE)/(CONT'D) included, proven against all 125 pages of Big Fish); new material becomes A-pages (12A) that never strand a cue or heading; deletions leave short pages. Locked labels show in the page dividers, status bar and the PDF's page numbers.
+- Scene numbering: Production > Number Scenes writes Fountain #1# markers into the script file; numbers render in the editor margins, sidebar, corkboard, outline, and both PDF margins. Lock Scene Numbers gives inserted scenes A-numbers (12A); renumbering is one undoable step.
+- Dual dialogue: Edit > Toggle Dual Dialogue (Cmd/Ctrl+Alt+D) pairs a speech with the one before it; the editor shows true side-by-side columns, and the paginator composes both columns into the page so the PDF prints them at standard margins and never splits a pair.
+- Reports: a sixth view (Cmd/Ctrl+Alt+6) with scene list, characters (speeches, words, scenes, first appearance), locations, INT/EXT and time-of-day breakdowns, and the writing history; every report exports as .txt or .csv.
+- Writing stats and goals: per-day words and pages in the sidecar (imports, stash restores and undo never count; deletions never subtract), a per-script daily goal with live status bar progress.
+- Templates: Stage Play, Audio Drama and Comic starters; a plain "Format:" title page key drives their element layouts in the editor and PDF. Final Draft pagination parity remains a screenplay-only promise.
+- Fixed during verification: revision mark and page lock anchors are whitespace-normalized (typed text with a trailing space used to lose its mark on reload); element IDs are now assigned to every element and deduplicated after paste.
+
 ## v0.3.2 branding (October 12, 2026)
 
 - Spec has a face: the owner's icon art ships as the app icon on every platform (macOS .icns, Windows .ico, Linux PNG set), in the installer, Finder, Dock and taskbar, and on the window in dev. The source art came on a fake-transparency checkerboard (a JPEG cannot hold real transparency), so `apps/desktop/scripts/generate-icons.py` reconstructs the checker pattern mathematically, un-composites the art from it (soft shadows become real alpha), and sets it on a dark rounded tile matching the logo. Generated files are checked in; CI never runs the script.

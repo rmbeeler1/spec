@@ -104,4 +104,4 @@ export {
   type StashChunk
 } from './planning/stash'
 
-export const CORE_VERSION = '0.3.2'
+export const CORE_VERSION = '0.4.0'
