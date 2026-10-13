@@ -23,6 +23,12 @@ export function OutlineView({ structure, cards, onJump }: Props): React.JSX.Elem
         <span>Sequences</span>
         <span>Scenes</span>
       </div>
+      <p className="outline-hint">
+        This outline mirrors the script. To start an act, type <code># Act One</code> on its own
+        line above the scenes that belong to it; <code>## Sequence Name</code> makes a sequence
+        inside an act. A scene belongs to whatever section sits above it, so move the scene (drag
+        its corkboard card) or move the # line to restructure. These lines never print.
+      </p>
       {structure.length === 0 && (
         <p className="empty board-empty">
           Nothing to outline yet. Scene headings appear here; # section lines group them into acts

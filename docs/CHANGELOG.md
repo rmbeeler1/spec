@@ -2,8 +2,9 @@
 
 All notable changes to Spec are recorded here.
 
-## v0.4.0 "Produce" (October 13, 2026, built; tagging awaits the owner's manual checks)
+## v0.4.0 "Produce" (October 13, 2026)
 
+- The Outline view carries a short how-to for acts and sequences (structure is typed as # lines in the script; the outline mirrors it).
 - Dark mode, focus mode and Show Structure shortcuts fixed (owner report: they did nothing): in development builds, React StrictMode mounted the app twice and the menu-command listener never unsubscribed, so every command fired twice and toggles cancelled themselves out. The listeners now clean up properly; non-toggle commands were silently double-firing too.
 - Dual dialogue is forgiving now (owner report: the toggle did nothing): it works with the caret in either speech of the pair, the shortcut is handled inside the editor as well as by the menu (so nothing at the OS level can eat it), and when it refuses (no adjacent speech) it says why instead of failing silently. Verified live with real Cmd+Shift+B keystrokes.
 - Shortcut audit (owner report: Cmd+Option+D was swallowed by macOS's Dock toggle): every Cmd/Ctrl+Alt binding is gone. Views and the stash pane are Cmd+Ctrl+1..7 on Mac and Ctrl+Shift+1..7 on Windows/Linux, stash selection is Cmd/Ctrl+Shift+X, dual dialogue is Cmd/Ctrl+Shift+B. Every binding in the app is now checked against the macOS and Windows reserved lists, including AltGr layouts; the audit and the rules live in docs/shortcut-audit.md.

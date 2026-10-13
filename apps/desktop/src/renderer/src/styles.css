@@ -1015,6 +1015,20 @@ body {
   margin-bottom: 6px;
 }
 
+.outline-hint {
+  font-size: 0.76rem;
+  color: var(--muted);
+  max-width: 72ch;
+  margin: 2px 0 12px;
+  line-height: 1.45;
+}
+
+.outline-hint code {
+  background: var(--chrome-border);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
 .outline-rows {
   display: grid;
   grid-template-columns: 180px 180px 1fr;
