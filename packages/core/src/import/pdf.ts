@@ -1,8 +1,27 @@
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import type { IdGenerator } from '../model/ids'
 import { classifyLines, type ImportLine } from './classifier'
 import { buildScript, extractTitlePage } from './build'
 import type { ImportResult } from './text'
+
+/**
+ * pdf.js is loaded lazily: it is the heaviest dependency in core and only
+ * needed when someone actually imports a PDF, so bundlers can split it out.
+ *
+ * In a browser, pdf.js normally insists on a Web Worker (and throws
+ * "No GlobalWorkerOptions.workerSrc specified" without one). Registering the
+ * worker module on globalThis.pdfjsWorker BEFORE the first getDocument call
+ * makes pdf.js use its built-in main-thread handler instead, in every
+ * environment: Node, Electron renderer, dev server, packaged file:// app.
+ */
+async function loadPdfjs(): Promise<typeof import('pdfjs-dist/legacy/build/pdf.mjs')> {
+  const globals = globalThis as { pdfjsWorker?: unknown }
+  if (!globals.pdfjsWorker) {
+    // @ts-expect-error -- the worker entry ships no type declarations; we
+    // only hand the module object to pdf.js, which reads WorkerMessageHandler
+    globals.pdfjsWorker = await import('pdfjs-dist/legacy/build/pdf.worker.mjs')
+  }
+  return import('pdfjs-dist/legacy/build/pdf.mjs')
+}
 
 /**
  * Best-effort import of a PDF's text layer. Text items come with x/y
@@ -15,6 +34,7 @@ export async function importPdf(
   data: Uint8Array,
   options: { idGenerator?: IdGenerator } = {}
 ): Promise<ImportResult> {
+  const { getDocument } = await loadPdfjs()
   // pdfjs insists on a plain Uint8Array (a Node Buffer is rejected), and it
   // takes ownership of the bytes, so always hand it a fresh copy.
   const task = getDocument({ data: new Uint8Array(data), useSystemFonts: true })

@@ -13,6 +13,8 @@ All notable changes to Spec are recorded here.
 - Review pane: every line with its detected type and confidence, doubtful lines flagged and sortable to the top, click/shift-click selection, bulk type-setting, and a title page carried through. Committing creates an untitled document; nothing touches disk until the writer saves.
 - Title page extraction on import now also accepts the "Key:" with indented values form.
 - CLI reads .pdf as well: `spec convert script.pdf script.fountain`.
+- Fixed: PDF import failed in the running app with "No GlobalWorkerOptions.workerSrc specified". pdf.js takes a different code path in a browser renderer than in Node, so unit tests never saw it; the importer now registers pdf.js's main-thread handler before first use, which works identically in Node, the dev server, and the packaged file:// app (no Web Worker, no CSP exceptions). A regression test runs importPdf with the `process` global hidden, forcing the same browser path the renderer uses; it reproduces the exact error without the fix.
+- pdf.js is now lazy-loaded: it and its worker module split into separate chunks (~3.3 MB) that load on the first PDF import, shrinking the startup bundle back to its pre-PDF size. Verified live by dropping a corpus PDF on the built app: review pane opened with 110 lines classified, no errors (docs/evidence/v0.2-pdf-import.png).
 - Remaining before the v0.2.0 release: owner confirmation of docs/acceptance/v0.2.md, then tag.
 
 ## v0.1.1 discoverability pass (October 12, 2026, after hands-on feedback)
