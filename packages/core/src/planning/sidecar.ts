@@ -73,6 +73,14 @@ export interface WritingStats {
   goal?: WritingGoal
 }
 
+export interface OmittedScene {
+  /** Scene number kept on the OMITTED placeholder, when the script has them. */
+  sceneNumber: string | null
+  /** Stash chunk holding the scene exactly as it was. */
+  chunkId: string
+  originalHeading: string
+}
+
 export interface PlanningData {
   version: 1
   scenes: SceneMeta[]
@@ -84,6 +92,10 @@ export interface PlanningData {
   numberingLocked?: boolean
   /** Writing stats and the per-script daily goal. */
   writing?: WritingStats
+  /** Revision sets and marks (see planning/revisions.ts). */
+  revisions?: import('./revisions').RevisionsData
+  /** Scenes omitted to the stash, keyed to their OMITTED placeholders. */
+  omitted?: OmittedScene[]
 }
 
 export function emptyPlanning(): PlanningData {
@@ -100,7 +112,10 @@ export function isPlanningEmpty(data: PlanningData): boolean {
     data.storylines.length === 0 &&
     data.numberingLocked !== true &&
     (data.writing === undefined ||
-      (data.writing.history.length === 0 && data.writing.goal === undefined))
+      (data.writing.history.length === 0 && data.writing.goal === undefined)) &&
+    (data.revisions === undefined ||
+      (data.revisions.sets.length === 0 && data.revisions.marks.length === 0)) &&
+    (data.omitted === undefined || data.omitted.length === 0)
   )
 }
 
@@ -234,6 +249,70 @@ export function parsePlanning(json: string): { data: PlanningData; hadErrors: bo
     }
     if (history.length > 0 || writing.goal) data.writing = writing
   }
+
+  const rev = o['revisions'] as Record<string, unknown> | undefined
+  if (typeof rev === 'object' && rev !== null) {
+    const sets: import('./revisions').RevisionSetDef[] = []
+    for (const s of arr(rev['sets'])) {
+      const e = s as Record<string, unknown>
+      if (str(e['id']) && str(e['name']) && str(e['color']) && str(e['startedAt'])) {
+        const set: import('./revisions').RevisionSetDef = {
+          id: e['id'],
+          name: e['name'],
+          color: e['color'],
+          startedAt: e['startedAt']
+        }
+        if (str(e['closedAt'])) set.closedAt = e['closedAt']
+        sets.push(set)
+      } else {
+        hadErrors = true
+      }
+    }
+    const setIds = new Set(sets.map((s) => s.id))
+    const marks: import('./revisions').RevisionMark[] = []
+    for (const m of arr(rev['marks'])) {
+      const e = m as Record<string, unknown>
+      if (
+        str(e['setId']) &&
+        setIds.has(e['setId']) &&
+        typeof e['scene'] === 'string' &&
+        str(e['type']) &&
+        typeof e['text'] === 'string'
+      ) {
+        marks.push({
+          setId: e['setId'],
+          scene: e['scene'],
+          type: e['type'] as import('../model/types').ElementType,
+          text: e['text']
+        })
+      } else {
+        hadErrors = true
+      }
+    }
+    if (sets.length > 0 || marks.length > 0) {
+      const revisions: import('./revisions').RevisionsData = { sets, marks }
+      if (str(rev['activeSetId']) && setIds.has(rev['activeSetId'] as string)) {
+        revisions.activeSetId = rev['activeSetId'] as string
+      }
+      data.revisions = revisions
+    }
+  }
+
+  const omitted: OmittedScene[] = []
+  for (const om of arr(o['omitted'])) {
+    const e = om as Record<string, unknown>
+    if (str(e['chunkId']) && str(e['originalHeading'])) {
+      omitted.push({
+        sceneNumber: str(e['sceneNumber']) ? e['sceneNumber'] : null,
+        chunkId: e['chunkId'],
+        originalHeading: e['originalHeading']
+      })
+    } else {
+      hadErrors = true
+    }
+  }
+  if (omitted.length > 0) data.omitted = omitted
+
   return { data, hadErrors }
 }
 

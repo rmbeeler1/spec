@@ -10,7 +10,8 @@
  * bookkeeping here; the caller supplies depths from prosemirror-history.
  */
 
-export type PairedKind = 'stash' | 'restore'
+/** stash/omit add a stash entry; restore/unomit remove one. */
+export type PairedKind = 'stash' | 'restore' | 'omit' | 'unomit'
 
 export interface PairedAction {
   kind: PairedKind

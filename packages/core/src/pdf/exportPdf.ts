@@ -19,6 +19,8 @@ export interface PdfFonts {
 export interface PdfExportOptions {
   fonts: PdfFonts
   pagination?: Partial<PaginationConfig>
+  /** Elements with revision marks: their lines get a margin asterisk. */
+  revisedElementIds?: Set<string>
 }
 
 // US Letter at 72 points per inch. Courier 12pt: 10 chars per inch wide,
@@ -60,7 +62,17 @@ export async function exportPdf(script: Script, options: PdfExportOptions): Prom
       })
     }
     for (let n = 0; n < pages[p]!.lines.length; n++) {
-      drawLine(page, pages[p]!.lines[n]!, n, fonts)
+      const line = pages[p]!.lines[n]!
+      drawLine(page, line, n, fonts)
+      // Revision asterisk in the right margin, industry style
+      if (line.elementId && options.revisedElementIds?.has(line.elementId) && line.type !== 'blank') {
+        page.drawText('*', {
+          x: PAGE_WIDTH - 30,
+          y: baselineY(n),
+          size: FONT_SIZE,
+          font: fonts.bold
+        })
+      }
     }
   }
 

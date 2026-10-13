@@ -1775,6 +1775,57 @@ body {
   color: var(--muted);
 }
 
+.status-revision {
+  font-weight: 700;
+}
+
+/* Revision marks: a colored asterisk in the right margin */
+.tiptap .el-revised {
+  position: relative;
+}
+
+.tiptap .el-revised::after {
+  content: '*';
+  position: absolute;
+  right: -4ch;
+  top: 0;
+  color: var(--rev-color, var(--accent));
+  font-weight: 700;
+}
+
+/* Scene headings use ::after for the right-hand scene number; a revised
+   heading keeps the number and shows the asterisk further out */
+.tiptap .el-scene_heading.el-revised[data-scene-number]::after {
+  content: attr(data-scene-number) ' *';
+  color: var(--muted);
+}
+
+.revision-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.revision-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--chrome-border);
+  font-size: 0.82rem;
+}
+
+.revision-list li.active .rev-name {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.revision-list .rev-dates {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
 .status-goal.met {
   color: var(--accent);
   font-weight: 600;

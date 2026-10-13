@@ -26,6 +26,8 @@ interface Props {
   /** Words and pages written today, for the goal readout. */
   today: { words: number; pages: number }
   goal: WritingGoal | undefined
+  /** Active revision set, shown as a colored chip. */
+  revision: { name: string; color: string } | null
 }
 
 export function StatusBar({
@@ -35,7 +37,8 @@ export function StatusBar({
   filePath,
   saveState,
   today,
-  goal
+  goal,
+  revision
 }: Props): React.JSX.Element {
   const save =
     saveState === 'saved' ? 'Saved' : saveState === 'editing' ? 'Editing…' : 'Not saved to a file yet'
@@ -52,6 +55,11 @@ export function StatusBar({
         {pageCount} {pageCount === 1 ? 'page' : 'pages'} · {sceneCount}{' '}
         {sceneCount === 1 ? 'scene' : 'scenes'}
       </span>
+      {revision && (
+        <span className="status-revision" style={{ color: revision.color }}>
+          * {revision.name}
+        </span>
+      )}
       {goalText && (
         <span className={`status-goal${goal && done >= goal.perDay ? ' met' : ''}`}>
           ✎ {goalText}

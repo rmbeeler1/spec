@@ -33,31 +33,46 @@ export function listScenes(editor: Editor): SceneInfo[] {
 }
 
 /**
- * Scene headings typed in this session start with no element ID. Planning
- * data needs one, so assign IDs lazily, outside the undo history (undoing a
- * keystroke should never strip an ID planning data already points at).
+ * Elements typed in this session start with no element ID, and pasted
+ * content can carry duplicates. Planning data and revision marks need every
+ * element uniquely identified, so assign fresh IDs lazily, outside the undo
+ * history (undoing a keystroke should never strip an ID planning data
+ * already points at).
  */
 export function assignMissingSceneIds(editor: Editor): void {
-  const missing: number[] = []
+  const fix: number[] = []
+  const seen = new Set<string>()
   editor.state.doc.descendants((node, pos) => {
-    if (
-      node.type.name === 'element' &&
-      node.attrs['type'] === 'scene_heading' &&
-      !node.attrs['elementId']
-    ) {
-      missing.push(pos)
-    }
+    if (node.type.name !== 'element') return false
+    const id = node.attrs['elementId'] as string | null
+    if (!id || seen.has(id)) fix.push(pos)
+    else seen.add(id)
     return false
   })
-  if (missing.length === 0) return
+  if (fix.length === 0) return
   const nextId = randomIdGenerator()
   const tr = editor.state.tr
-  for (const pos of missing) {
+  for (const pos of fix) {
     const node = editor.state.doc.nodeAt(pos)!
     tr.setNodeMarkup(pos, undefined, { ...node.attrs, elementId: nextId() })
   }
   tr.setMeta('addToHistory', false)
   editor.view.dispatch(tr)
+}
+
+/** The scene the caret sits in: heading position and the scene's full range. */
+export function sceneRangeAtSelection(
+  editor: Editor
+): { headingPos: number; from: number; to: number } | null {
+  const { $from } = editor.state.selection
+  if ($from.depth < 1) return null
+  const caret = $from.before(1)
+  const all = listScenes(editor)
+  let heading = -1
+  for (const s of all) if (s.pos <= caret) heading = s.pos
+  if (heading === -1) return null
+  const next = all.find((s) => s.pos > heading)
+  return { headingPos: heading, from: heading, to: next?.pos ?? editor.state.doc.content.size }
 }
 
 export interface StructureInfo {

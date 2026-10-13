@@ -44,6 +44,7 @@ export {
   type BeatLink,
   type PlanningData,
   type SceneMeta,
+  type OmittedScene,
   type SceneRef,
   type StashEntry,
   type Storyline,
@@ -63,6 +64,16 @@ export {
   type OutlineNode,
   type ScenePages
 } from './planning/stats'
+export {
+  REVISION_COLORS,
+  attachRevisionMarks,
+  nextRevisionColor,
+  revisionColorValue,
+  snapshotRevisionMarks,
+  type RevisionMark,
+  type RevisionSetDef,
+  type RevisionsData
+} from './planning/revisions'
 export {
   buildReports,
   headingLocation,

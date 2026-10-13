@@ -148,6 +148,10 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
           click: () => send('production:toggle-number-lock')
         },
         { type: 'separator' },
+        { label: 'Revision Sets…', click: () => send('production:revisions') },
+        { label: 'Omit Scene', click: () => send('production:omit-scene') },
+        { label: 'Un-omit Scene', click: () => send('production:unomit-scene') },
+        { type: 'separator' },
         { label: 'Writing Goal…', click: () => send('production:writing-goal') }
       ]
     },

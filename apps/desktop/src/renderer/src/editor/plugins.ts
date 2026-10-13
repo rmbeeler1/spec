@@ -122,6 +122,63 @@ export const SceneDim = Extension.create({
 })
 
 /**
+ * Revision marks: elements edited under an active revision set get a colored
+ * asterisk in the margin. The App pushes the current element-to-color map in
+ * via meta whenever marks change.
+ */
+export const revisionMarksKey = new PluginKey<DecorationSet>('revisionMarks')
+
+export interface RevisionMarksMeta {
+  /** element ID -> revision color (CSS value); null clears everything. */
+  colors: Map<string, string> | null
+}
+
+function buildRevisionDecorations(doc: PmNode, colors: Map<string, string>): DecorationSet {
+  const decorations: Decoration[] = []
+  doc.descendants((node, pos) => {
+    if (node.type.name !== 'element') return false
+    const id = node.attrs['elementId'] as string | null
+    const color = id ? colors.get(id) : undefined
+    if (color) {
+      decorations.push(
+        Decoration.node(pos, pos + node.nodeSize, {
+          class: 'el-revised',
+          style: `--rev-color: ${color}`
+        })
+      )
+    }
+    return false
+  })
+  return DecorationSet.create(doc, decorations)
+}
+
+export const RevisionMarks = Extension.create({
+  name: 'revisionMarks',
+  addProseMirrorPlugins() {
+    return [
+      new Plugin<DecorationSet>({
+        key: revisionMarksKey,
+        state: {
+          init: () => DecorationSet.empty,
+          apply(tr, old) {
+            const meta = tr.getMeta(revisionMarksKey) as RevisionMarksMeta | undefined
+            if (meta) {
+              return meta.colors ? buildRevisionDecorations(tr.doc, meta.colors) : DecorationSet.empty
+            }
+            return tr.docChanged ? old.map(tr.mapping, tr.doc) : old
+          }
+        },
+        props: {
+          decorations(state) {
+            return revisionMarksKey.getState(state)
+          }
+        }
+      })
+    ]
+  }
+})
+
+/**
  * Dual dialogue columns. The doc stays flat; CSS does the layout: the first
  * speech's elements get el-dual-left (floated), the ^-cued speech gets
  * el-dual-right (normal flow beside the float, so the tops align), and the

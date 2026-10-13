@@ -4,9 +4,12 @@ import { UndoRedo } from '@tiptap/extensions'
 import { undoDepth } from '@tiptap/pm/history'
 import type { Editor } from '@tiptap/core'
 import {
+  attachRevisionMarks,
   attachSceneMeta,
   characterStats,
   emptyPlanning,
+  revisionColorValue,
+  snapshotRevisionMarks,
   exportPdf,
   isPlanningEmpty,
   paginate,
@@ -22,7 +25,9 @@ import {
   stashPathFor,
   writeFdx,
   type ElementType,
+  type OmittedScene,
   type PlanningData,
+  type RevisionMark,
   type Script,
   type TitlePageEntry
 } from '@spec/core'
@@ -38,11 +43,14 @@ import {
   CurrentElement,
   DualColumns,
   PageBreaks,
+  RevisionMarks,
   SceneDim,
   pageBreaksKey,
+  revisionMarksKey,
   sceneDimKey
 } from './editor/plugins'
 import { toggleDualOnCurrentSpeech } from './editor/dual'
+import { omitCurrentScene, unOmitAtSelection } from './editor/omit'
 import { computePageBreakMap } from './editor/pageMap'
 import { scriptToDoc, docToScript, type PmDoc } from './editor/convert'
 import {
@@ -52,6 +60,7 @@ import {
   listStructure,
   moveScene,
   moveSceneTo,
+  sceneRangeAtSelection,
   setSceneSynopsis,
   type SceneInfo,
   type StructureInfo
@@ -107,6 +116,7 @@ import { OrphanMetaBanner } from './components/OrphanMetaBanner'
 import { AboutDialog } from './components/AboutDialog'
 import { ReportsView } from './components/ReportsView'
 import { GoalDialog } from './components/GoalDialog'
+import { RevisionSetsDialog } from './components/RevisionSetsDialog'
 import { routeImport, type PendingImport } from './import/route'
 
 type SaveState = 'saved' | 'editing' | 'unsaved-no-file'
@@ -146,6 +156,7 @@ export default function App(): React.JSX.Element {
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
   const [showGoal, setShowGoal] = useState(false)
+  const [showRevisions, setShowRevisions] = useState(false)
   const [showRename, setShowRename] = useState(false)
   const [renameError, setRenameError] = useState<string | null>(null)
   const [orphan, setOrphan] = useState<OrphanSidecarInfo | null>(null)
@@ -174,6 +185,10 @@ export default function App(): React.JSX.Element {
   const pendingWords = useRef(0)
   const pageBaseline = useRef<number | null>(null)
   const suppressStats = useRef(false)
+  /** Revision marks live on element IDs in-session; anchors persist them. */
+  const liveMarks = useRef(new Map<string, string>())
+  const unmatchedMarks = useRef<RevisionMark[]>([])
+  const omittedArchive = useRef(new Map<string, OmittedScene>())
 
   const editor = useEditor({
     extensions: [
@@ -185,6 +200,7 @@ export default function App(): React.JSX.Element {
       PageBreaks,
       SceneDim,
       DualColumns,
+      RevisionMarks,
       CurrentElement,
       UndoRedo
     ],
@@ -284,7 +300,19 @@ export default function App(): React.JSX.Element {
   const savePlanningNow = useCallback(async (): Promise<void> => {
     const { filePath: path, planning: data, scenes: sc, stashItems: items } = stateRef.current
     if (!path || !planningLoaded.current) return
-    const refreshed = refreshHeadings(data, sc)
+    let refreshed = refreshHeadings(data, sc)
+    // Revision marks are keyed by element ID in memory; persist them as
+    // scene/type/text anchors that survive the next load
+    if (refreshed.revisions || liveMarks.current.size > 0 || unmatchedMarks.current.length > 0) {
+      const base = refreshed.revisions ?? { sets: [], marks: [] }
+      refreshed = {
+        ...refreshed,
+        revisions: {
+          ...base,
+          marks: snapshotRevisionMarks(currentScript(), liveMarks.current, unmatchedMarks.current)
+        }
+      }
+    }
     await window.spec.writePlanningFile(
       sidecarPathFor(path),
       isPlanningEmpty(refreshed) ? '' : serializePlanning(refreshed)
@@ -292,6 +320,22 @@ export default function App(): React.JSX.Element {
     await window.spec.writePlanningFile(
       stashPathFor(path),
       serializeStashFile(items.map((i) => i.chunk))
+    )
+  }, [currentScript])
+
+  /** Repaint the margin asterisks from the live marks and set colors. */
+  const pushRevisionDecorations = useCallback((): void => {
+    const ed = stateRef.current.editor
+    if (!ed) return
+    const sets = stateRef.current.planning.revisions?.sets ?? []
+    const colorOf = new Map(sets.map((s) => [s.id, revisionColorValue(s.color)]))
+    const colors = new Map<string, string>()
+    for (const [id, setId] of liveMarks.current) {
+      const c = colorOf.get(setId)
+      if (c) colors.set(id, c)
+    }
+    ed.view.dispatch(
+      ed.state.tr.setMeta(revisionMarksKey, { colors: colors.size > 0 ? colors : null })
     )
   }, [])
 
@@ -328,6 +372,9 @@ export default function App(): React.JSX.Element {
     setFilteredCharacter(null)
     setSelectedCharacter(null)
     setOrphanBannerDismissed(false)
+    liveMarks.current.clear()
+    unmatchedMarks.current = []
+    omittedArchive.current.clear()
 
     let data = emptyPlanning()
     let foundSidecar = false
@@ -345,6 +392,14 @@ export default function App(): React.JSX.Element {
     const { attached, orphans } = attachSceneMeta(sceneRefs, data.scenes)
     data = { ...data, scenes: [...attached, ...orphans] }
     setPlanning(data)
+    stateRef.current.planning = data
+
+    // Revision marks re-attach by scene/type/text anchors
+    const rev = attachRevisionMarks(loaded, data.revisions?.marks ?? [])
+    liveMarks.current = rev.live
+    unmatchedMarks.current = rev.unmatched
+    for (const record of data.omitted ?? []) omittedArchive.current.set(record.chunkId, record)
+    pushRevisionDecorations()
 
     let items: StashItemView[] = []
     if (path) {
@@ -367,7 +422,7 @@ export default function App(): React.JSX.Element {
       const found = await window.spec.findOrphanSidecar(path)
       if (found) setOrphan(found)
     }
-  }, [])
+  }, [pushRevisionDecorations])
 
   const loadContent = useCallback(
     (content: string, path: string | null): void => {
@@ -407,7 +462,10 @@ export default function App(): React.JSX.Element {
       if (kind === 'pdf') {
         const path = await window.spec.saveFileAs(`${base}.pdf`, 'PDF', ['pdf'])
         if (!path) return
-        const bytes = await exportPdf(script, { fonts: pdfFonts() })
+        const bytes = await exportPdf(script, {
+          fonts: pdfFonts(),
+          revisedElementIds: new Set(liveMarks.current.keys())
+        })
         await window.spec.writeBinaryFile(path, bytes)
       } else if (kind === 'fdx') {
         const path = await window.spec.saveFileAs(`${base}.fdx`, 'Final Draft', ['fdx'])
@@ -509,28 +567,46 @@ export default function App(): React.JSX.Element {
   )
 
   /** Reverse the stash-side effect of an op (or re-apply it, for redo). */
-  const applyStashSide = useCallback((kind: 'stash' | 'restore', entryId: string, undoing: boolean) => {
-    const archived = chunkArchive.current.get(entryId)
-    // kind=stash undone -> entry leaves the stash; redone -> comes back.
-    // kind=restore undone -> entry returns to the stash; redone -> leaves.
-    const present = kind === 'stash' ? !undoing : undoing
-    if (present && archived) {
-      setStashItems((items) =>
-        items.some((i) => i.chunk.id === entryId) ? items : [archived, ...items]
-      )
-      setPlanning((p) =>
-        addStashEntry(p, {
-          id: entryId,
-          cutAt: archived.cutAt,
-          summary: stashChunkSummary(archived.chunk),
-          ...(archived.fromScene ? { fromScene: archived.fromScene } : {})
-        })
-      )
-    } else {
-      setStashItems((items) => items.filter((i) => i.chunk.id !== entryId))
-      setPlanning((p) => removeStashEntry(p, entryId))
-    }
-  }, [])
+  const applyStashSide = useCallback(
+    (kind: 'stash' | 'restore' | 'omit' | 'unomit', entryId: string, undoing: boolean) => {
+      const archived = chunkArchive.current.get(entryId)
+      // stash/omit add an entry: undone -> it leaves; redone -> comes back.
+      // restore/unomit remove one: undone -> it returns; redone -> leaves.
+      const adds = kind === 'stash' || kind === 'omit'
+      const present = adds ? !undoing : undoing
+      const record = omittedArchive.current.get(entryId)
+
+      const syncOmitted = (p: PlanningData): PlanningData => {
+        if (!record) return p
+        const without = (p.omitted ?? []).filter((r) => r.chunkId !== entryId)
+        const omitted = present ? [...without, record] : without
+        const next = { ...p }
+        if (omitted.length > 0) next.omitted = omitted
+        else delete next.omitted
+        return next
+      }
+
+      if (present && archived) {
+        setStashItems((items) =>
+          items.some((i) => i.chunk.id === entryId) ? items : [archived, ...items]
+        )
+        setPlanning((p) =>
+          syncOmitted(
+            addStashEntry(p, {
+              id: entryId,
+              cutAt: archived.cutAt,
+              summary: stashChunkSummary(archived.chunk),
+              ...(archived.fromScene ? { fromScene: archived.fromScene } : {})
+            })
+          )
+        )
+      } else {
+        setStashItems((items) => items.filter((i) => i.chunk.id !== entryId))
+        setPlanning((p) => syncOmitted(removeStashEntry(p, entryId)))
+      }
+    },
+    []
+  )
 
   // Global undo/redo: route to the editor from any view, and pair stash moves
   useEffect(() => {
@@ -567,6 +643,79 @@ export default function App(): React.JSX.Element {
     window.addEventListener('keydown', onKeyDown, true)
     return () => window.removeEventListener('keydown', onKeyDown, true)
   }, [applyStashSide, refreshDerived])
+
+  const omitScene = useCallback((): void => {
+    const ed = stateRef.current.editor
+    if (!ed || stateRef.current.view !== 'write') return
+    const res = omitCurrentScene(ed)
+    if (!res) return
+    const id = newStashId()
+    const cutAt = new Date().toISOString()
+    const item: StashItemView = {
+      chunk: { id, cutAt, elements: res.elements },
+      cutAt,
+      fromScene: res.originalHeading
+    }
+    chunkArchive.current.set(id, item)
+    const record = {
+      sceneNumber: res.sceneNumber,
+      chunkId: id,
+      originalHeading: res.originalHeading
+    }
+    omittedArchive.current.set(id, record)
+    setStashItems((items) => [item, ...items])
+    setPlanning((p) => {
+      const next = addStashEntry(p, {
+        id,
+        cutAt,
+        summary: `OMITTED: ${res.originalHeading}`,
+        fromScene: res.originalHeading
+      })
+      return { ...next, omitted: [...(next.omitted ?? []), record] }
+    })
+    pairing.current.record('omit', id, undoDepth(ed.state))
+    refreshDerived(ed)
+  }, [refreshDerived])
+
+  const unomitScene = useCallback((): void => {
+    const ed = stateRef.current.editor
+    if (!ed || stateRef.current.view !== 'write') return
+    const range = sceneRangeAtSelection(ed)
+    if (!range) return
+    const heading = ed.state.doc.nodeAt(range.headingPos)!
+    if (heading.textContent.trim().toUpperCase() !== 'OMITTED') {
+      setImportError('Put the cursor on an OMITTED scene heading first.')
+      return
+    }
+    const number = (heading.attrs['sceneNumber'] as string | null) ?? null
+    const records = stateRef.current.planning.omitted ?? []
+    const record =
+      records.find((r) => r.sceneNumber !== null && r.sceneNumber === number) ??
+      (records.length === 1 ? records[0] : records.find((r) => r.sceneNumber === null))
+    const item = record
+      ? stateRef.current.stashItems.find((i) => i.chunk.id === record.chunkId)
+      : undefined
+    if (!record || !item) {
+      setImportError('No stored scene found for this OMITTED heading.')
+      return
+    }
+    suppressStats.current = true
+    if (!unOmitAtSelection(ed, stashChunkFountain(item.chunk))) {
+      suppressStats.current = false
+      return
+    }
+    setStashItems((items) => items.filter((i) => i.chunk.id !== record.chunkId))
+    setPlanning((p) => {
+      const base = removeStashEntry(p, record.chunkId)
+      const omitted = (base.omitted ?? []).filter((r) => r.chunkId !== record.chunkId)
+      const next = { ...base }
+      if (omitted.length > 0) next.omitted = omitted
+      else delete next.omitted
+      return next
+    })
+    pairing.current.record('unomit', record.chunkId, undoDepth(ed.state))
+    refreshDerived(ed)
+  }, [refreshDerived])
 
   const filterCharacter = useCallback(
     (name: string | null): void => {
@@ -605,10 +754,12 @@ export default function App(): React.JSX.Element {
   // Editor change tracking: dirty state, autosave, derived data.
   useEffect(() => {
     if (!editor) return
-    const onUpdate = (): void => {
+    const onUpdate = ({ transaction }: { transaction: import('@tiptap/pm/state').Transaction }): void => {
       const path = stateRef.current.filePath
       setSaveState(path ? 'editing' : 'unsaved-no-file')
       window.spec.setDocumentState(path, true)
+      const suppressed = suppressStats.current
+      suppressStats.current = false
 
       // Words written: positive deltas only, batched until the next idle
       // flush. Undo/redo realigns the baseline without counting.
@@ -617,12 +768,39 @@ export default function App(): React.JSX.Element {
         .textBetween(0, doc.content.size, '\n')
         .split(/\s+/)
         .filter((w) => w.length > 0).length
-      if (suppressStats.current || wordBaseline.current === null) {
-        suppressStats.current = false
-      } else if (words > wordBaseline.current) {
+      if (!suppressed && wordBaseline.current !== null && words > wordBaseline.current) {
         pendingWords.current += words - wordBaseline.current
       }
       wordBaseline.current = words
+
+      // Active revision set: everything this transaction touched gets its mark
+      const activeSetId = stateRef.current.planning.revisions?.activeSetId
+      if (
+        activeSetId &&
+        transaction.docChanged &&
+        transaction.getMeta('addToHistory') !== false &&
+        !suppressed
+      ) {
+        let added = false
+        transaction.steps.forEach((step, i) => {
+          const rest = transaction.mapping.slice(i + 1)
+          step.getMap().forEach((_fromA, _toA, fromB, toB) => {
+            const from = Math.max(0, Math.min(rest.map(fromB, -1), doc.content.size))
+            const to = Math.max(from, Math.min(rest.map(toB, 1), doc.content.size))
+            doc.nodesBetween(from, to, (node) => {
+              if (node.type.name === 'element') {
+                const id = node.attrs['elementId'] as string | null
+                if (id && liveMarks.current.get(id) !== activeSetId) {
+                  liveMarks.current.set(id, activeSetId)
+                  added = true
+                }
+              }
+              return false
+            })
+          })
+        })
+        if (added) pushRevisionDecorations()
+      }
 
       // Typing a # or = line while structure is hidden would make it vanish;
       // auto-show structure instead (owner decision, Oct 2026).
@@ -653,7 +831,7 @@ export default function App(): React.JSX.Element {
       editor.off('update', onUpdate)
       editor.off('selectionUpdate', onSelection)
     }
-  }, [editor, doSave, refreshDerived])
+  }, [editor, doSave, refreshDerived, pushRevisionDecorations])
 
   // Native menu commands.
   useEffect(() => {
@@ -757,6 +935,15 @@ export default function App(): React.JSX.Element {
         }
         case 'production:writing-goal':
           setShowGoal(true)
+          break
+        case 'production:revisions':
+          setShowRevisions(true)
+          break
+        case 'production:omit-scene':
+          omitScene()
+          break
+        case 'production:unomit-scene':
+          unomitScene()
           break
         case 'production:toggle-number-lock':
           setPlanning((p) => {
@@ -982,6 +1169,12 @@ export default function App(): React.JSX.Element {
           saveState={saveState}
           today={today}
           goal={planning.writing?.goal}
+          revision={(() => {
+            const active = planning.revisions?.sets.find(
+              (s) => s.id === planning.revisions?.activeSetId
+            )
+            return active ? { name: active.name, color: revisionColorValue(active.color) } : null
+          })()}
         />
       </main>
       {showTitlePage && (
@@ -1041,6 +1234,40 @@ export default function App(): React.JSX.Element {
       )}
       {showShortcuts && <ShortcutsDialog modKey={modKey} onClose={() => setShowShortcuts(false)} />}
       {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
+      {showRevisions && (
+        <RevisionSetsDialog
+          sets={planning.revisions?.sets ?? []}
+          activeSetId={planning.revisions?.activeSetId}
+          onStart={(name, color) =>
+            setPlanning((p) => {
+              const base = p.revisions ?? { sets: [], marks: [] }
+              const id = `rev-${Date.now().toString(36)}`
+              return {
+                ...p,
+                revisions: {
+                  ...base,
+                  sets: [...base.sets, { id, name, color, startedAt: new Date().toISOString() }],
+                  activeSetId: id
+                }
+              }
+            })
+          }
+          onEndActive={() =>
+            setPlanning((p) => {
+              if (!p.revisions?.activeSetId) return p
+              const closed = p.revisions.sets.map((s) =>
+                s.id === p.revisions!.activeSetId
+                  ? { ...s, closedAt: new Date().toISOString() }
+                  : s
+              )
+              const revisions = { ...p.revisions, sets: closed }
+              delete revisions.activeSetId
+              return { ...p, revisions }
+            })
+          }
+          onClose={() => setShowRevisions(false)}
+        />
+      )}
       {showGoal && (
         <GoalDialog
           goal={planning.writing?.goal}
