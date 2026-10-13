@@ -7,14 +7,16 @@ import type { RenderPage } from '@spec/core'
  * split mid-way (long action, dialogue with MORE) appeared earlier, so they
  * get no divider; the status bar page count still reflects them.
  */
-export function computePageBreakMap(pages: RenderPage[]): Map<string, number> {
-  const breaks = new Map<string, number>()
+export function computePageBreakMap(pages: RenderPage[]): Map<string, string> {
+  const breaks = new Map<string, string>()
   const seen = new Set<string>()
   for (let p = 0; p < pages.length; p++) {
     const ids = pages[p]!.lines.map((l) => l.elementId).filter((id): id is string => id !== null)
     if (p > 0) {
       const first = ids[0]
-      if (first !== undefined && !seen.has(first)) breaks.set(first, p + 1)
+      if (first !== undefined && !seen.has(first)) {
+        breaks.set(first, pages[p]!.label ?? String(p + 1))
+      }
     }
     for (const id of ids) seen.add(id)
   }

@@ -49,6 +49,7 @@ export type MenuCommand =
   | 'production:toggle-number-lock'
   | 'production:writing-goal'
   | 'production:revisions'
+  | 'production:toggle-page-lock'
   | 'production:omit-scene'
   | 'production:unomit-scene'
   | 'help:shortcuts'

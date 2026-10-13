@@ -12,12 +12,20 @@ export { serializeFountain } from './fountain/serialize'
 export { parseEmphasis, spansForRange, type StyledText, type StyleSpan } from './text/emphasis'
 export { DEFAULT_PAGINATION, type PaginationConfig } from './pagination/config'
 export {
+  lockPages,
   paginate,
+  paginateLocked,
   wrapLine,
+  type PageLockAnchor,
   type RenderLine,
   type RenderLineType,
   type RenderPage
 } from './pagination/paginate'
+export {
+  attachPageAnchors,
+  snapshotPageAnchors,
+  type StoredPageAnchor
+} from './planning/locking'
 export {
   classifyLines,
   type ClassifiedLine,

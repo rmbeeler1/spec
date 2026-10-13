@@ -4,11 +4,15 @@ import { UndoRedo } from '@tiptap/extensions'
 import { undoDepth } from '@tiptap/pm/history'
 import type { Editor } from '@tiptap/core'
 import {
+  attachPageAnchors,
   attachRevisionMarks,
   attachSceneMeta,
   characterStats,
   emptyPlanning,
+  lockPages,
+  paginateLocked,
   revisionColorValue,
+  snapshotPageAnchors,
   snapshotRevisionMarks,
   exportPdf,
   isPlanningEmpty,
@@ -26,6 +30,7 @@ import {
   writeFdx,
   type ElementType,
   type OmittedScene,
+  type PageLockAnchor,
   type PlanningData,
   type RevisionMark,
   type Script,
@@ -189,6 +194,9 @@ export default function App(): React.JSX.Element {
   const liveMarks = useRef(new Map<string, string>())
   const unmatchedMarks = useRef<RevisionMark[]>([])
   const omittedArchive = useRef(new Map<string, OmittedScene>())
+  /** Locked pagination anchors, attached to live element IDs. */
+  const pageLocks = useRef<PageLockAnchor[]>([])
+  const [pagesLocked, setPagesLocked] = useState(false)
 
   const editor = useEditor({
     extensions: [
@@ -228,7 +236,10 @@ export default function App(): React.JSX.Element {
       paginateTimer.current = setTimeout(() => {
         const snapshot = currentScript()
         setScript(snapshot)
-        const pages = paginate(snapshot)
+        const pages =
+          pageLocks.current.length > 0
+            ? paginateLocked(snapshot, pageLocks.current)
+            : paginate(snapshot)
         setPageCount(Math.max(1, pages.length))
         const breaks = computePageBreakMap(pages)
         ed.view.dispatch(ed.state.tr.setMeta(pageBreaksKey, { breaks }))
@@ -301,6 +312,16 @@ export default function App(): React.JSX.Element {
     const { filePath: path, planning: data, scenes: sc, stashItems: items } = stateRef.current
     if (!path || !planningLoaded.current) return
     let refreshed = refreshHeadings(data, sc)
+    // Locked pages persist as text anchors, same idea as revision marks
+    if (pageLocks.current.length > 0) {
+      refreshed = {
+        ...refreshed,
+        lockedPages: snapshotPageAnchors(currentScript(), pageLocks.current)
+      }
+    } else if (refreshed.lockedPages) {
+      refreshed = { ...refreshed }
+      delete refreshed.lockedPages
+    }
     // Revision marks are keyed by element ID in memory; persist them as
     // scene/type/text anchors that survive the next load
     if (refreshed.revisions || liveMarks.current.size > 0 || unmatchedMarks.current.length > 0) {
@@ -375,6 +396,8 @@ export default function App(): React.JSX.Element {
     liveMarks.current.clear()
     unmatchedMarks.current = []
     omittedArchive.current.clear()
+    pageLocks.current = []
+    setPagesLocked(false)
 
     let data = emptyPlanning()
     let foundSidecar = false
@@ -400,6 +423,10 @@ export default function App(): React.JSX.Element {
     unmatchedMarks.current = rev.unmatched
     for (const record of data.omitted ?? []) omittedArchive.current.set(record.chunkId, record)
     pushRevisionDecorations()
+
+    // Locked pages re-attach the same way
+    pageLocks.current = data.lockedPages ? attachPageAnchors(loaded, data.lockedPages) : []
+    setPagesLocked(pageLocks.current.length > 0)
 
     let items: StashItemView[] = []
     if (path) {
@@ -464,7 +491,8 @@ export default function App(): React.JSX.Element {
         if (!path) return
         const bytes = await exportPdf(script, {
           fonts: pdfFonts(),
-          revisedElementIds: new Set(liveMarks.current.keys())
+          revisedElementIds: new Set(liveMarks.current.keys()),
+          ...(pageLocks.current.length > 0 ? { lockedAnchors: pageLocks.current } : {})
         })
         await window.spec.writeBinaryFile(path, bytes)
       } else if (kind === 'fdx') {
@@ -939,6 +967,21 @@ export default function App(): React.JSX.Element {
         case 'production:revisions':
           setShowRevisions(true)
           break
+        case 'production:toggle-page-lock': {
+          const ed = stateRef.current.editor
+          if (!ed) break
+          if (pageLocks.current.length > 0) {
+            pageLocks.current = []
+            setPagesLocked(false)
+          } else {
+            pageLocks.current = lockPages(currentScript())
+            setPagesLocked(true)
+          }
+          refreshDerived(ed)
+          // Make the lock state hit the sidecar even with no other edits
+          setPlanning((p) => ({ ...p }))
+          break
+        }
         case 'production:omit-scene':
           omitScene()
           break
@@ -1169,6 +1212,7 @@ export default function App(): React.JSX.Element {
           saveState={saveState}
           today={today}
           goal={planning.writing?.goal}
+          pagesLocked={pagesLocked}
           revision={(() => {
             const active = planning.revisions?.sets.find(
               (s) => s.id === planning.revisions?.activeSetId

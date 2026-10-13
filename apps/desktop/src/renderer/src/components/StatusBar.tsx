@@ -28,6 +28,7 @@ interface Props {
   goal: WritingGoal | undefined
   /** Active revision set, shown as a colored chip. */
   revision: { name: string; color: string } | null
+  pagesLocked: boolean
 }
 
 export function StatusBar({
@@ -38,7 +39,8 @@ export function StatusBar({
   saveState,
   today,
   goal,
-  revision
+  revision,
+  pagesLocked
 }: Props): React.JSX.Element {
   const save =
     saveState === 'saved' ? 'Saved' : saveState === 'editing' ? 'Editing…' : 'Not saved to a file yet'
@@ -52,7 +54,8 @@ export function StatusBar({
     <footer className="status-bar">
       <span className="status-type">{currentType ? TYPE_LABELS[currentType] : ''}</span>
       <span>
-        {pageCount} {pageCount === 1 ? 'page' : 'pages'} · {sceneCount}{' '}
+        {pageCount} {pageCount === 1 ? 'page' : 'pages'}
+        {pagesLocked ? ' (locked)' : ''} · {sceneCount}{' '}
         {sceneCount === 1 ? 'scene' : 'scenes'}
       </span>
       {revision && (

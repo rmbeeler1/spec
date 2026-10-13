@@ -2,7 +2,12 @@ import { PDFDocument, type PDFFont, type PDFPage } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
 import type { Script } from '../model/types'
 import { titlePageBlocks } from '../model/titlePage'
-import { paginate, type RenderLine } from '../pagination/paginate'
+import {
+  paginate,
+  paginateLocked,
+  type PageLockAnchor,
+  type RenderLine
+} from '../pagination/paginate'
 import type { PaginationConfig } from '../pagination/config'
 
 /**
@@ -21,6 +26,8 @@ export interface PdfExportOptions {
   pagination?: Partial<PaginationConfig>
   /** Elements with revision marks: their lines get a margin asterisk. */
   revisedElementIds?: Set<string>
+  /** Locked pagination anchors: pages keep their numbers, A-pages appear. */
+  lockedAnchors?: PageLockAnchor[]
 }
 
 // US Letter at 72 points per inch. Courier 12pt: 10 chars per inch wide,
@@ -48,12 +55,15 @@ export async function exportPdf(script: Script, options: PdfExportOptions): Prom
     drawTitlePage(doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]), script, fonts.regular)
   }
 
-  const pages = paginate(script, options.pagination)
+  const pages =
+    options.lockedAnchors && options.lockedAnchors.length > 0
+      ? paginateLocked(script, options.lockedAnchors, options.pagination)
+      : paginate(script, options.pagination)
   for (let p = 0; p < pages.length; p++) {
     const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT])
     // Page numbers start at 2, top right, per standard practice
     if (p > 0) {
-      const label = `${p + 1}.`
+      const label = `${pages[p]!.label ?? String(p + 1)}.`
       page.drawText(label, {
         x: PAGE_WIDTH - RIGHT_MARGIN - label.length * CHAR_WIDTH,
         y: PAGE_HEIGHT - 48,

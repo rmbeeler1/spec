@@ -147,6 +147,10 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
           label: 'Lock Scene Numbers',
           click: () => send('production:toggle-number-lock')
         },
+        {
+          label: 'Lock / Unlock Pages',
+          click: () => send('production:toggle-page-lock')
+        },
         { type: 'separator' },
         { label: 'Revision Sets…', click: () => send('production:revisions') },
         { label: 'Omit Scene', click: () => send('production:omit-scene') },

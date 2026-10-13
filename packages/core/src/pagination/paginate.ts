@@ -17,6 +17,8 @@ export interface RenderLine {
 
 export interface RenderPage {
   lines: RenderLine[]
+  /** Locked pagination only: the page's production label ("12", "12A"). */
+  label?: string
 }
 
 /** Elements that never appear on a script page. */
@@ -33,6 +35,216 @@ export function paginate(script: Script, partial: Partial<PaginationConfig> = {}
 
   const blocks = buildBlocks(script, config)
   return fillPages(blocks, config)
+}
+
+export interface PageLockAnchor {
+  /** The locked page's label: "12" stays "12" forever. */
+  page: string
+  /** Element whose rendered line starts the locked page. */
+  elementId: string
+  /** Which of that element's rendered lines (0-based) starts the page. */
+  lineOffset: number
+}
+
+/**
+ * Lock the current pagination: remember, line-precisely, where every page
+ * starts. A page that opens mid-speech (after a CONT'D cue) anchors to the
+ * first continuation line of the dialogue element.
+ */
+export function lockPages(script: Script, partial: Partial<PaginationConfig> = {}): PageLockAnchor[] {
+  const pages = paginate(script, partial)
+  const seen = new Map<string, number>()
+  const anchors: PageLockAnchor[] = []
+  for (let p = 0; p < pages.length; p++) {
+    let anchored = false
+    for (const line of pages[p]!.lines) {
+      if (!line.elementId) continue
+      const offset = seen.get(line.elementId) ?? 0
+      if (!anchored) {
+        anchors.push({ page: String(p + 1), elementId: line.elementId, lineOffset: offset })
+        anchored = true
+      }
+      seen.set(line.elementId, offset + 1)
+    }
+  }
+  return anchors
+}
+
+/**
+ * Paginate against locked pages. Forced breaks happen exactly at the locked
+ * line anchors, so an unedited script reproduces its locked layout to the
+ * line, (MORE)/(CONT'D) included. New material overflows into A-pages (12A,
+ * 12B) instead of renumbering, and removed material leaves pages short.
+ * Anchors whose element was cut or rewritten dissolve into the previous
+ * page. Overflow pages break more simply than first-run pagination (they
+ * avoid orphaned cues and bottom headings, but split flow text anywhere).
+ */
+export function paginateLocked(
+  script: Script,
+  anchors: PageLockAnchor[],
+  partial: Partial<PaginationConfig> = {}
+): RenderPage[] {
+  const config: PaginationConfig = {
+    ...DEFAULT_PAGINATION,
+    ...partial,
+    indents: { ...DEFAULT_PAGINATION.indents, ...partial.indents },
+    widths: { ...DEFAULT_PAGINATION.widths, ...partial.widths },
+    blankLinesBefore: { ...DEFAULT_PAGINATION.blankLinesBefore, ...partial.blankLinesBefore }
+  }
+  const present = new Set(script.elements.map((e) => e.id))
+  const locks = anchors.filter((a) => present.has(a.elementId))
+  if (locks.length === 0) return paginate(script, partial)
+
+  const blocks = buildBlocks(script, config)
+  const pages: RenderPage[] = []
+  let current: RenderLine[] = []
+  let label = locks[0]!.page
+  let overflow = 0
+  let lockIdx = 0
+  const emitted = new Map<string, number>() // content lines emitted per element
+
+  const letterFor = (n: number): string => {
+    let s = ''
+    n += 1
+    while (n > 0) {
+      n--
+      s = String.fromCharCode(65 + (n % 26)) + s
+      n = Math.floor(n / 26)
+    }
+    return s
+  }
+
+  const closePage = (): void => {
+    pages.push({ lines: current, label })
+    current = []
+  }
+
+  const startLockedPage = (page: string): void => {
+    if (current.length > 0) closePage()
+    label = page
+    overflow = 0
+  }
+
+  const startOverflowPage = (): void => {
+    closePage()
+    label = `${label.replace(/[A-Z]+$/, '')}${letterFor(overflow)}`
+    overflow++
+  }
+
+  const pushBlanks = (count: number): void => {
+    if (current.length === 0) return
+    for (let k = 0; k < count; k++) {
+      current.push({ elementId: null, type: 'blank', text: '', indent: 0, spans: [] })
+    }
+  }
+
+  /** Emit one content line, honoring lock points and the page height. */
+  const emit = (
+    line: RenderLine,
+    blanksBefore: number,
+    midBlock: boolean,
+    dialogue?: { cueText: string }
+  ): void => {
+    if (line.elementId) {
+      const offset = emitted.get(line.elementId) ?? 0
+      const lock = locks[lockIdx]
+      if (lock && lock.elementId === line.elementId && lock.lineOffset === offset) {
+        lockIdx++
+        if (dialogue && midBlock && current.length > 0) {
+          // The locked layout split this speech here: recreate (MORE) and
+          // the CONT'D cue exactly as the original pagination printed them
+          current.push({
+            elementId: null,
+            type: 'more',
+            text: '(MORE)',
+            indent: config.indents.character ?? 22,
+            spans: []
+          })
+          startLockedPage(lock.page)
+          current.push({
+            elementId: null,
+            type: 'character',
+            text: `${dialogue.cueText.replace(/\s*\(CONT'D\)\s*$/i, '')} (CONT'D)`,
+            indent: config.indents.character ?? 22,
+            spans: []
+          })
+        } else {
+          startLockedPage(lock.page)
+        }
+        blanksBefore = 0
+      }
+      emitted.set(line.elementId, offset + 1)
+    }
+    if (current.length + blanksBefore + 1 > config.linesPerPage) {
+      // Overflow onto an A-page; never leave a cue or heading stranded
+      if (dialogue && midBlock) {
+        const last = current[current.length - 1]
+        let cueIdx = -1
+        for (let k = current.length - 1; k >= 0; k--) {
+          if (current[k]!.type === 'character') {
+            cueIdx = k
+            break
+          }
+        }
+        if (last && (last.type === 'character' || last.type === 'parenthetical') && cueIdx !== -1) {
+          // Never strand a cue (or its parenthetical) at a page bottom
+          const carried = current.splice(cueIdx, current.length)
+          startOverflowPage()
+          current.push(...carried)
+        } else {
+          // The page is full mid-speech: the last dialogue line yields its
+          // row to (MORE) and continues overleaf under a CONT'D cue
+          const carried: RenderLine[] = []
+          const lastLine = current[current.length - 1]
+          if (lastLine && (lastLine.type === 'dialogue' || lastLine.type === 'lyric')) {
+            carried.push(current.pop()!)
+          }
+          current.push({
+            elementId: null,
+            type: 'more',
+            text: '(MORE)',
+            indent: config.indents.character ?? 22,
+            spans: []
+          })
+          startOverflowPage()
+          current.push({
+            elementId: null,
+            type: 'character',
+            text: `${dialogue.cueText.replace(/\s*\(CONT'D\)\s*$/i, '')} (CONT'D)`,
+            indent: config.indents.character ?? 22,
+            spans: []
+          })
+          current.push(...carried)
+        }
+      } else {
+        const last = current[current.length - 1]
+        if (last && last.type === 'scene_heading') {
+          current.pop()
+          startOverflowPage()
+          current.push(last)
+        } else {
+          startOverflowPage()
+        }
+      }
+      blanksBefore = 0
+    }
+    pushBlanks(blanksBefore)
+    current.push(line)
+  }
+
+  for (const block of blocks) {
+    if (block.kind === 'forced_break') {
+      if (current.length > 0) startOverflowPage()
+      continue
+    }
+    const isDialogue = block.kind === 'dialogue'
+    const cue = isDialogue ? { cueText: block.cueText ?? '' } : undefined
+    block.lines.forEach((line, i) => {
+      emit(line, i === 0 ? block.blanksBefore : 0, i > 0, cue)
+    })
+  }
+  if (current.length > 0 || pages.length === 0) closePage()
+  return pages
 }
 
 // ---------------------------------------------------------------------------

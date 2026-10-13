@@ -11,10 +11,10 @@ import type { Node as PmNode } from '@tiptap/pm/model'
 export const pageBreaksKey = new PluginKey<DecorationSet>('pageBreaks')
 
 export interface PageBreaksMeta {
-  breaks: Map<string, number>
+  breaks: Map<string, string>
 }
 
-function buildPageBreakDecorations(doc: PmNode, breaks: Map<string, number>): DecorationSet {
+function buildPageBreakDecorations(doc: PmNode, breaks: Map<string, string>): DecorationSet {
   const decorations: Decoration[] = []
   doc.descendants((node, pos) => {
     if (node.type.name !== 'element') return false

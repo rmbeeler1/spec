@@ -96,6 +96,8 @@ export interface PlanningData {
   revisions?: import('./revisions').RevisionsData
   /** Scenes omitted to the stash, keyed to their OMITTED placeholders. */
   omitted?: OmittedScene[]
+  /** Locked pagination anchors (see planning/locking.ts). */
+  lockedPages?: import('./locking').StoredPageAnchor[]
 }
 
 export function emptyPlanning(): PlanningData {
@@ -115,7 +117,8 @@ export function isPlanningEmpty(data: PlanningData): boolean {
       (data.writing.history.length === 0 && data.writing.goal === undefined)) &&
     (data.revisions === undefined ||
       (data.revisions.sets.length === 0 && data.revisions.marks.length === 0)) &&
-    (data.omitted === undefined || data.omitted.length === 0)
+    (data.omitted === undefined || data.omitted.length === 0) &&
+    (data.lockedPages === undefined || data.lockedPages.length === 0)
   )
 }
 
@@ -312,6 +315,33 @@ export function parsePlanning(json: string): { data: PlanningData; hadErrors: bo
     }
   }
   if (omitted.length > 0) data.omitted = omitted
+
+  const locked: import('./locking').StoredPageAnchor[] = []
+  for (const lp of arr(o['lockedPages'])) {
+    const e = lp as Record<string, unknown>
+    if (
+      str(e['page']) &&
+      typeof e['scene'] === 'string' &&
+      str(e['type']) &&
+      typeof e['text'] === 'string' &&
+      typeof e['lineOffset'] === 'number' &&
+      e['lineOffset'] >= 0 &&
+      typeof e['occurrence'] === 'number' &&
+      e['occurrence'] >= 0
+    ) {
+      locked.push({
+        page: e['page'],
+        scene: e['scene'],
+        type: e['type'] as import('../model/types').ElementType,
+        text: e['text'],
+        lineOffset: e['lineOffset'],
+        occurrence: e['occurrence']
+      })
+    } else {
+      hadErrors = true
+    }
+  }
+  if (locked.length > 0) data.lockedPages = locked
 
   return { data, hadErrors }
 }
