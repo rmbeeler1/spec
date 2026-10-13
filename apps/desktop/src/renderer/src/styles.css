@@ -1073,6 +1073,85 @@ body {
   white-space: nowrap;
 }
 
+/* ---------- Reports ---------- */
+
+.reports {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.reports-tabs {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  padding: 8px 14px;
+  background: var(--chrome-bg);
+  border-bottom: 1px solid var(--chrome-border);
+}
+
+.reports-tabs button {
+  padding: 4px 12px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.reports-tabs button.active {
+  background: var(--paper);
+  border-color: var(--chrome-border);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.reports-export {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+
+.reports-export button {
+  border: 1px solid var(--chrome-border) !important;
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+}
+
+.reports-table-wrap {
+  flex: 1;
+  overflow: auto;
+  padding: 14px 18px;
+}
+
+.reports-table {
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  min-width: 480px;
+}
+
+.reports-table th {
+  text-align: left;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--divider);
+  padding: 4px 14px 4px 0;
+}
+
+.reports-table td {
+  padding: 4px 14px 4px 0;
+  border-bottom: 1px solid var(--chrome-border);
+  color: var(--ink);
+}
+
+.reports-table td:first-child {
+  white-space: nowrap;
+}
+
 /* ---------- Stash pane ---------- */
 
 .stash-pane {

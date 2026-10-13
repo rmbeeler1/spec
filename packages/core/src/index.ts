@@ -61,6 +61,13 @@ export {
   type ScenePages
 } from './planning/stats'
 export {
+  buildReports,
+  headingLocation,
+  reportToCsv,
+  reportToText,
+  type ReportTable
+} from './planning/reports'
+export {
   nextSceneNumber,
   parseSceneNumber,
   sequentialSceneNumbers,

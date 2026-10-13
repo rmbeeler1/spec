@@ -94,6 +94,7 @@ import { RenameDialog } from './components/RenameDialog'
 import { OrphanPrompt } from './components/OrphanPrompt'
 import { OrphanMetaBanner } from './components/OrphanMetaBanner'
 import { AboutDialog } from './components/AboutDialog'
+import { ReportsView } from './components/ReportsView'
 import { routeImport, type PendingImport } from './import/route'
 
 type SaveState = 'saved' | 'editing' | 'unsaved-no-file'
@@ -598,7 +599,8 @@ export default function App(): React.JSX.Element {
         'view:corkboard': 'corkboard',
         'view:pacing': 'pacing',
         'view:beatboard': 'beatboard',
-        'view:outline': 'outline'
+        'view:outline': 'outline',
+        'view:reports': 'reports'
       }
       const nextView = views[command]
       if (nextView) {
@@ -868,6 +870,14 @@ export default function App(): React.JSX.Element {
                 setView('write')
                 requestAnimationFrame(() => editor && jumpToScene(editor, pos))
               }}
+            />
+          )}
+          {view === 'reports' && (
+            <ReportsView
+              script={script}
+              baseName={
+                titlePage.find((e) => e.key.toLowerCase() === 'title')?.values[0] ?? 'Untitled'
+              }
             />
           )}
           {stashOpen && (

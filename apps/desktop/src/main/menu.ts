@@ -103,6 +103,7 @@ export async function buildMenu(deps: MenuDeps): Promise<void> {
           click: () => send('view:beatboard')
         },
         { label: 'Outline', accelerator: 'CmdOrCtrl+Alt+5', click: () => send('view:outline') },
+        { label: 'Reports', accelerator: 'CmdOrCtrl+Alt+6', click: () => send('view:reports') },
         {
           label: 'Toggle Stash',
           accelerator: 'CmdOrCtrl+Alt+S',

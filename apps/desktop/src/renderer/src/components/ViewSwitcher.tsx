@@ -1,11 +1,12 @@
-export type AppView = 'write' | 'corkboard' | 'pacing' | 'beatboard' | 'outline'
+export type AppView = 'write' | 'corkboard' | 'pacing' | 'beatboard' | 'outline' | 'reports'
 
 const VIEWS: Array<{ id: AppView; label: string }> = [
   { id: 'write', label: 'Write' },
   { id: 'corkboard', label: 'Corkboard' },
   { id: 'pacing', label: 'Pacing' },
   { id: 'beatboard', label: 'Beat Board' },
-  { id: 'outline', label: 'Outline' }
+  { id: 'outline', label: 'Outline' },
+  { id: 'reports', label: 'Reports' }
 ]
 
 interface Props {
